@@ -126,12 +126,11 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
           </div>
         ))}
 
-        {/* Plus button - subtle, to the right with extra spacing */}
-        <div className="flex-1"></div>
+        {/* Plus button - with modest margin from cards */}
         <button
           onClick={() => setShowDialog(true)}
           disabled={selectedModelIds.length >= MAX_MODELS}
-          className="text-lg text-gray-400 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="ml-4 text-lg text-gray-400 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           title="Add model"
         >
           +

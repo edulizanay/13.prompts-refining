@@ -59,39 +59,36 @@ export function DatasetSelector({ selectedDatasetId, onDatasetSelected }: Datase
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <label className="block text-sm font-medium text-gray-700">Dataset</label>
-        <div className="flex gap-2 items-center">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".csv,.json"
-            onChange={handleFileSelect}
-            disabled={uploadLoading}
-            className="hidden"
-          />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploadLoading}
-            className="px-3 py-1 text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200 rounded hover:border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-          >
-            {uploadLoading ? (
-              <>
-                <span className="inline-block w-3 h-3 border-2 border-gray-700 border-t-transparent rounded-full animate-spin"></span>
-              </>
-            ) : (
-              '+ Upload'
-            )}
-          </button>
-          {selectedDataset && (
-            <button
-              onClick={() => setPreviewDatasetId(selectedDataset.id)}
-              className="px-3 py-1 text-xs font-medium text-primary hover:bg-primary hover:bg-opacity-10 rounded"
-            >
-              Preview
-            </button>
+      <div className="flex gap-2 items-center">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv,.json"
+          onChange={handleFileSelect}
+          disabled={uploadLoading}
+          className="hidden"
+        />
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploadLoading}
+          className="px-3 py-1 text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200 rounded hover:border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+        >
+          {uploadLoading ? (
+            <>
+              <span className="inline-block w-3 h-3 border-2 border-gray-700 border-t-transparent rounded-full animate-spin"></span>
+            </>
+          ) : (
+            '+ Upload'
           )}
-        </div>
+        </button>
+        {selectedDataset && (
+          <button
+            onClick={() => setPreviewDatasetId(selectedDataset.id)}
+            className="px-3 py-1 text-xs font-medium text-primary hover:bg-primary hover:bg-opacity-10 rounded"
+          >
+            Preview
+          </button>
+        )}
       </div>
 
       {selectedDataset && (

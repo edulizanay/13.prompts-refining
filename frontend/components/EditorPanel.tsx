@@ -366,24 +366,25 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
 
       {/* Expected Output */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <label className="block text-sm font-medium text-gray-700">Expected Output</label>
-          <div className="flex gap-2">
-            {(['none', 'response', 'json'] as const).map((option) => (
-              <button
-                key={option}
-                onClick={() => handleUpdateExpectedOutput(option)}
-                className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                  currentPrompt.expected_output === option
-                    ? 'bg-primary text-white'
-                    : 'bg-gray-100 text-gray-700 border border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                {option === 'none' ? 'None' : option === 'response' ? 'Response' : 'JSON'}
-              </button>
-            ))}
-          </div>
-        </div>
+        <label className="block text-sm font-medium text-gray-700">Expected Output</label>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm text-left bg-white hover:bg-gray-50">
+              {currentPrompt.expected_output === 'none' ? 'No parsing' : currentPrompt.expected_output === 'response' ? 'Extract <response> tags' : 'JSON'}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-full">
+            <DropdownMenuItem onClick={() => handleUpdateExpectedOutput('none')}>
+              No parsing
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleUpdateExpectedOutput('response')}>
+              Extract &lt;response&gt; tags
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleUpdateExpectedOutput('json')}>
+              JSON
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         {showExpectedOutputTooltip && (
           <p className="text-xs text-gray-500">
             If set and parse fails, cell is marked <span className="font-medium">Malformed</span>.
@@ -397,12 +398,12 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm text-left bg-white hover:bg-gray-50">
-              {selectedGraderId ? prompts.find(p => p.id === selectedGraderId)?.name : 'None'}
+              {selectedGraderId ? prompts.find(p => p.id === selectedGraderId)?.name : 'No grader selected'}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-full">
             <DropdownMenuItem onClick={() => handleGraderSelected(null)}>
-              None
+              No grader selected
             </DropdownMenuItem>
             {prompts
               .filter((p) => p.type === 'grader')
