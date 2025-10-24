@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import type { Prompt, Run, Dataset } from '@/lib/types';
 import { initializeSeedData, getUIState, setActiveRunId, getRunById, getDatasetById, getAllRuns } from '@/lib/mockRepo.temp';
 import { EditorPanel } from '@/components/EditorPanel';
@@ -21,6 +21,7 @@ export default function Home() {
   const [showParsedOnly] = useState(false);
   const [viewMode, setViewMode] = useState<'current' | 'history'>('current');
   const [selectedHistoryRunId, setSelectedHistoryRunId] = useState<string | null>(null);
+  const editorPanelRef = useRef<{ triggerRun: () => Promise<void> }>(null);
 
   useEffect(() => {
     // Initialize seed data on first load
@@ -64,6 +65,22 @@ export default function Home() {
     }
   }, [activeRunId, viewMode, selectedHistoryRunId]);
 
+  // Keyboard shortcut: Cmd+Enter (Mac) or Ctrl+Enter (Windows/Linux) to run
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const isRunShortcut = isMac ? e.metaKey && e.key === 'Enter' : e.ctrlKey && e.key === 'Enter';
+
+      if (isRunShortcut) {
+        e.preventDefault();
+        editorPanelRef.current?.triggerRun();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const handlePromptSelected = useCallback((_prompt: Prompt) => {
     // Prompt selection is handled internally by EditorPanel
   }, []);
@@ -77,6 +94,7 @@ export default function Home() {
       {/* Left Panel: Editor (40%) */}
       <div className="w-2/5 border-r border-accent-dark p-6 overflow-y-auto">
         <EditorPanel
+          ref={editorPanelRef}
           onPromptSelected={handlePromptSelected}
           selectedDatasetId={selectedDatasetId}
           onDatasetSelected={setSelectedDatasetId}

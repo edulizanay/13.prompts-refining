@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useImperativeHandle, useCallback, forwardRef } from 'react';
 import { Prompt } from '@/lib/types';
 import { extractPlaceholders } from '@/lib/utils';
 import {
@@ -38,17 +38,18 @@ Example:
 You are a helpful assistant. The user asks: {{user_message}}
 Respond professionally.`;
 
-export function EditorPanel({
-  onPromptSelected,
-  selectedDatasetId: propDatasetId,
-  onDatasetSelected,
-  selectedGraderId: propGraderId,
-  onGraderSelected,
-  selectedModelIds: propModelIds,
-  onModelsChange,
-  activeRunId: propActiveRunId,
-  onActiveRunIdChange,
-}: EditorPanelProps) {
+export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, EditorPanelProps>(
+  function EditorPanel({
+    onPromptSelected,
+    selectedDatasetId: propDatasetId,
+    onDatasetSelected,
+    selectedGraderId: propGraderId,
+    onGraderSelected,
+    selectedModelIds: propModelIds,
+    onModelsChange,
+    activeRunId: propActiveRunId,
+    onActiveRunIdChange,
+  }, ref) {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [selectedId, setSelectedId] = useState<string>('');
   const [localDatasetId, setLocalDatasetId] = useState<string | null>(null);
@@ -165,7 +166,7 @@ export function EditorPanel({
     }
   };
 
-  const handleRun = async () => {
+  const handleRun = useCallback(async () => {
     if (!currentPrompt || activeRunId) return;
 
     // Validate
@@ -216,7 +217,12 @@ export function EditorPanel({
       setIsRunning(false);
       onActiveRunIdChange?.(null);
     }
-  };
+  }, [currentPrompt, activeRunId, selectedDatasetId, selectedGraderId, selectedModelIds, onActiveRunIdChange]);
+
+  // Expose triggerRun via ref for keyboard shortcuts
+  useImperativeHandle(ref, () => ({
+    triggerRun: handleRun,
+  }), [handleRun]);
 
   const placeholders = currentPrompt ? extractPlaceholders(currentPrompt.text) : [];
 
@@ -461,4 +467,5 @@ export function EditorPanel({
       </div>
     </div>
   );
-}
+  }
+);
