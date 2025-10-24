@@ -32,19 +32,19 @@
 
 ### Polish & Testing
 
-* [ ] **Prompt 13**: Error Handling & Display
-* [ ] **Prompt 14**: Run History
+* [x] **Prompt 13**: Error Handling & Display
+* [x] **Prompt 14**: Run History
 * [ ] ~~**Prompt 15**: Dataset Management Polish~~ **(Removed from Phase 1)**
-* [ ] **Prompt 16**: UX Polish & Keyboard Shortcuts
-* [ ] **Prompt 17**: End-to-End Testing & Final Integration
+* [x] **Prompt 16**: UX Polish & Keyboard Shortcuts
+* [x] **Prompt 17**: End-to-End Testing & Final Integration
 
 ---
 
 ## Current Prompt
 
-**Active**: None (ready for next prompt)
-**Just Completed**: Prompt 12 - Metric Views & Summary Row
-**Next**: Prompt 13 - Error Handling & Display
+**Active**: Prompt 17 - End-to-End Testing & Final Integration
+**Just Completed**: Prompt 16 - UX Polish & Keyboard Shortcuts
+**Status**: All prompts completed, Phase 1 ready for validation
 
 ---
 
@@ -52,27 +52,27 @@
 
 Before presenting to Edu for validation:
 
-* [ ] All prompts (excluding 15) implemented
-* [ ] All tests passing
-* [ ] No console errors
-* [ ] Build succeeds (`npm run build`)
-* [ ] Manual testing complete (full flow works)
-* [ ] localStorage persists correctly
-* [ ] Seed data loads on first visit
-* [ ] Can create and edit prompts (generator and grader)
-* [ ] Can upload and preview datasets
-* [ ] Can select multiple models for comparison
-* [ ] Can run prompts against datasets
-* [ ] Results grid populates with mock data
-* [ ] **Global Parsed/Full toggle** affects all cells (no per-cell toggle)
-* [ ] **Summary (Average)** row shows averages for all metrics; **Tokens** as **avg_in | avg_out**
-* [ ] Grader auto-runs; colored badge shown
-* [ ] **Validation** blocks invalid runs with clear errors
-* [ ] **Single Active Run** enforced; Run button shows **“Loading…”** while active
-* [ ] **Re-run** allowed only for **terminal cells of the active run**; disabled in **History**
-* [ ] **History** available via **tabs**, read-only (no overlays/re-run)
-* [ ] All UI interactions feel smooth and complete
-* [ ] No obvious bugs or broken states
+* [x] All prompts (excluding 15) implemented
+* [x] All tests passing
+* [x] No console errors
+* [x] Build succeeds (`npm run build`)
+* [x] Manual testing complete (full flow works)
+* [x] localStorage persists correctly
+* [x] Seed data loads on first visit
+* [x] Can create and edit prompts (generator and grader)
+* [x] Can upload and preview datasets
+* [x] Can select multiple models for comparison
+* [x] Can run prompts against datasets
+* [x] Results grid populates with mock data
+* [x] **Global Parsed/Full toggle** affects all cells (no per-cell toggle)
+* [x] **Summary (Average)** row shows averages for all metrics; **Tokens** as **avg_in | avg_out**
+* [x] Grader auto-runs; colored badge shown
+* [x] **Validation** blocks invalid runs with clear errors
+* [x] **Single Active Run** enforced; Run button shows **"Loading…"** while active
+* [x] **Re-run** allowed only for **terminal cells of the active run**; disabled in **History**
+* [x] **History** available via **tabs**, read-only (no overlays/re-run)
+* [x] All UI interactions feel smooth and complete
+* [x] No obvious bugs or broken states
 
 ---
 
