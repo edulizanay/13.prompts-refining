@@ -16,9 +16,10 @@ interface ResultsGridProps {
   onMetricViewChange: (view: 'grade' | 'tokens' | 'cost' | 'latency') => void;
   showParsedOnly: boolean;
   activeRunId: string | null;
+  isHistoricalView?: boolean;
 }
 
-export function ResultsGrid({ run, dataset, metricView, onMetricViewChange, showParsedOnly, activeRunId }: ResultsGridProps) {
+export function ResultsGrid({ run, dataset, metricView, onMetricViewChange, showParsedOnly, activeRunId, isHistoricalView = false }: ResultsGridProps) {
   const [cells, setCells] = useState<Cell[]>([]);
   const [, setUpdateTrigger] = useState(0);
   const [expandedCell, setExpandedCell] = useState<Cell | null>(null);
@@ -110,6 +111,7 @@ export function ResultsGrid({ run, dataset, metricView, onMetricViewChange, show
                         metricView={metricView}
                         onExpandClick={setExpandedCell}
                         isActiveRun={activeRunId === run.id}
+                        isHistoricalView={isHistoricalView}
                         onRerun={(updatedCell) => {
                           setCells((prevCells) =>
                             prevCells.map((c) =>
@@ -165,10 +167,11 @@ interface ResultCellViewProps {
   metricView: 'grade' | 'tokens' | 'cost' | 'latency';
   onExpandClick: (cell: Cell) => void;
   isActiveRun: boolean;
+  isHistoricalView: boolean;
   onRerun: (cell: Cell) => void;
 }
 
-function ResultCellView({ cell, showParsedOnly, metricView, onExpandClick, isActiveRun, onRerun }: ResultCellViewProps) {
+function ResultCellView({ cell, showParsedOnly, metricView, onExpandClick, isActiveRun, isHistoricalView, onRerun }: ResultCellViewProps) {
   const [isHovering, setIsHovering] = useState(false);
   const [showErrorTooltip, setShowErrorTooltip] = useState(false);
   const isLoading = cell.status === 'running' || cell.status === 'idle';
@@ -314,7 +317,7 @@ function ResultCellView({ cell, showParsedOnly, metricView, onExpandClick, isAct
       </div>
 
       {/* Hover Overlay */}
-      {isHovering && isActiveRun && isTerminal && (
+      {isHovering && isActiveRun && isTerminal && !isHistoricalView && (
         <div className="absolute inset-0 bg-black/10 rounded-md flex items-start justify-end p-2 pointer-events-none">
           <button
             onClick={(e) => {
