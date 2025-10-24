@@ -418,8 +418,8 @@ function MetricBadge({ cell, metricView, showGraderOverlay, onToggleGrader, isEr
     badgeContent = cell.graded_value !== null ? formatGrade(cell.graded_value) : '—';
     const colorClass = cell.graded_value !== null ? gradeToColor(cell.graded_value) : 'gray';
     const gradientMap: Record<string, string> = {
-      green: 'bg-gradient-to-br from-emerald-300 to-emerald-500 text-white',
-      yellow: 'bg-gradient-to-br from-amber-300 to-amber-500 text-white',
+      green: 'bg-green-50 text-green-700 border border-green-200',
+      yellow: 'bg-amber-50 text-amber-700 border border-amber-200',
       red: 'bg-red-50 text-red-700 border border-red-200',
       gray: 'bg-gradient-to-br from-purple-200 to-purple-300 text-purple-900',
     };
