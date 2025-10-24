@@ -24,7 +24,7 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
   const [selectedProvider, setSelectedProvider] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
 
-  // Load models on mount and build registry from available models
+  // Load models on mount and initialize with default model if none selected
   useEffect(() => {
     const allModels = getAllModels();
     setModels(allModels);
@@ -37,6 +37,12 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
       const firstModel = allModels.find(m => m.provider === firstProvider);
       if (firstModel) {
         setSelectedModel(firstModel.model);
+      }
+
+      // Initialize with first model if none selected
+      if (selectedModelIds.length === 0) {
+        const firstModelId = allModels[0].id;
+        onModelsChange([firstModelId]);
       }
     }
 
@@ -78,9 +84,8 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
   const modelsForProvider = models.filter((m) => m.provider === selectedProvider);
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <label className="block text-sm font-medium text-gray-700">Models</label>
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
         <button
           onClick={() => setShowDialog(true)}
           disabled={selectedModelIds.length >= MAX_MODELS}
@@ -90,30 +95,32 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
         </button>
       </div>
 
-      {/* Model columns display */}
-      {selectedModels.length === 0 ? (
-        <p className="text-sm text-gray-500 italic">No models selected. Add one to begin.</p>
-      ) : (
-        <div className="flex gap-2 flex-wrap">
-          {selectedModels.map((model) => (
-            <div
-              key={model.id}
-              className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-md border border-gray-300"
-            >
-              <span className="text-sm font-medium text-gray-700">
-                {model.provider} / {model.model}
-              </span>
-              <button
-                onClick={() => handleRemoveModel(model.id)}
-                className="text-gray-500 hover:text-red-600 font-bold"
-                title="Remove model"
-              >
-                ✕
-              </button>
+      {/* Model cards display */}
+      <div className="grid grid-cols-1 gap-2">
+        {selectedModels.map((model) => (
+          <div
+            key={model.id}
+            className="flex items-center justify-between p-3 bg-white rounded-md border border-gray-200 hover:border-primary hover:shadow-sm transition-all cursor-pointer"
+            onClick={() => setShowDialog(true)}
+            title="Click to change model"
+          >
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900">{model.provider}</p>
+              <p className="text-xs text-gray-500">{model.model}</p>
             </div>
-          ))}
-        </div>
-      )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRemoveModel(model.id);
+              }}
+              className="text-gray-400 hover:text-red-600 font-bold text-lg leading-none"
+              title="Remove model"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+      </div>
 
       {/* Add model dialog */}
       {showDialog && (

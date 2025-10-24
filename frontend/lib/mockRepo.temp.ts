@@ -320,18 +320,15 @@ export function initializeSeedData(): void {
   createDataset('Sample Questions', ['user_message', 'expected_tone'], rows);
 
   // Initialize with latest models
-  // Cerebras
-  createModel('Cerebras', 'gpt-oss-120b');
-  createModel('Cerebras', 'llama3.1-8b');
-  createModel('Cerebras', 'llama-3.3-70b');
+  // Cerebras Systems (Cerebras API)
+  createModel('Cerebras Systems', 'gpt-oss-120b');
+  createModel('Cerebras Systems', 'llama3.1-8b');
+  createModel('Cerebras Systems', 'llama-3.3-70b');
 
-  // Groq (OpenAI-compatible API)
-  createModel('Groq', 'openai/gpt-oss-120b');
-  createModel('Groq', 'llama-3.3-70b-versatile');
-
-  // OpenRouter
-  createModel('OpenRouter', 'z-ai/glm-4.5-air:free');
-  createModel('OpenRouter', 'meta-llama/llama-3.3-70b-instruct:free');
+  // Groq Inc. (Groq OpenAI-compatible API)
+  createModel('Groq Inc.', 'openai/gpt-oss-20b');
+  createModel('Groq Inc.', 'openai/gpt-oss-120b');
+  createModel('Groq Inc.', 'llama-3.3-70b-versatile');
 
   localStorage.setItem(STORAGE_KEYS.INITIALIZED, 'true');
 }

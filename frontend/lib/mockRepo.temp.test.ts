@@ -251,7 +251,7 @@ describe('mockRepo.temp', () => {
       initializeSeedData();
       expect(getAllPrompts()).toHaveLength(2);
       expect(getAllDatasets()).toHaveLength(1);
-      expect(getAllModels()).toHaveLength(7); // Cerebras (3) + Groq (2) + OpenRouter (2)
+      expect(getAllModels()).toHaveLength(6); // Cerebras (3) + Groq (3)
 
       initializeSeedData();
       expect(getAllPrompts()).toHaveLength(2); // Should not duplicate

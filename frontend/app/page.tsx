@@ -80,44 +80,44 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen w-full bg-background">
-      {/* Left Panel: Editor (40%) */}
-      <div className="w-2/5 border-r border-accent-dark p-6 overflow-y-auto">
-        <EditorPanel
-          ref={editorPanelRef}
-          onPromptSelected={handlePromptSelected}
-          selectedDatasetId={selectedDatasetId}
-          onDatasetSelected={setSelectedDatasetId}
-          selectedGraderId={selectedGraderId}
-          onGraderSelected={setSelectedGraderId}
-          selectedModelIds={selectedModelIds}
-          activeRunId={activeRunId}
-          onActiveRunIdChange={setActiveRunIdState}
-        />
-      </div>
-
-      {/* Right Panel: Results (60%) */}
-      <div className="w-3/5 p-6 overflow-y-auto flex flex-col">
-        {/* Model Manager */}
-        <div className="mb-4">
-          <ModelManager selectedModelIds={selectedModelIds} onModelsChange={setSelectedModelIds} />
+    <div className="p-6 h-screen w-full bg-background flex flex-col">
+      <div className="flex h-full gap-6">
+        {/* Left Panel: Editor (40%) */}
+        <div className="w-2/5 border-r border-accent-dark overflow-y-auto">
+          <EditorPanel
+            ref={editorPanelRef}
+            onPromptSelected={handlePromptSelected}
+            selectedDatasetId={selectedDatasetId}
+            onDatasetSelected={setSelectedDatasetId}
+            selectedGraderId={selectedGraderId}
+            onGraderSelected={setSelectedGraderId}
+            selectedModelIds={selectedModelIds}
+            activeRunId={activeRunId}
+            onActiveRunIdChange={setActiveRunIdState}
+          />
         </div>
 
-        <div className="space-y-4 flex-1">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Results</h1>
-          {currentRun ? (
-            <ResultsGrid
-              run={currentRun}
-              dataset={currentDataset}
-              metricView={metricView}
-              onMetricViewChange={setMetricView}
-              showParsedOnly={showParsedOnly}
-              activeRunId={activeRunId}
-              isHistoricalView={false}
-            />
-          ) : (
-            <p className="text-gray-500">Run a prompt to see results here</p>
-          )}
+        {/* Right Panel: Results (60%) */}
+        <div className="w-3/5 overflow-y-auto flex flex-col">
+          {/* Model Manager */}
+          <div className="mb-4">
+            <ModelManager selectedModelIds={selectedModelIds} onModelsChange={setSelectedModelIds} />
+          </div>
+
+          <div className="space-y-4 flex-1">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Results</h1>
+            {currentRun && (
+              <ResultsGrid
+                run={currentRun}
+                dataset={currentDataset}
+                metricView={metricView}
+                onMetricViewChange={setMetricView}
+                showParsedOnly={showParsedOnly}
+                activeRunId={activeRunId}
+                isHistoricalView={false}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
