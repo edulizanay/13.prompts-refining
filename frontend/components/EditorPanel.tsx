@@ -1,20 +1,23 @@
 // ABOUTME: Left panel orchestrator - manages prompt state and wires all editor subcomponents
-// ABOUTME: Handles: selection, editing, renaming, expected output changes
+// ABOUTME: Handles: selection, editing, renaming, expected output, dataset selection
 
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Prompt } from '@/lib/types';
+import { Prompt, Dataset } from '@/lib/types';
 import { PromptHeader } from './PromptHeader';
 import { PromptEditor } from './PromptEditor';
 import { PromptSelector } from './PromptSelector';
 import { ExpectedOutputSelector } from './ExpectedOutputSelector';
+import { VariableChips } from './VariableChips';
+import { DatasetSelector } from './DatasetSelector';
 import {
   getAllPrompts,
   getPromptById,
   createPrompt,
   updatePrompt,
   renamePrompt,
+  getAllDatasets,
 } from '@/lib/mockRepo.temp';
 
 interface EditorPanelProps {
@@ -23,14 +26,18 @@ interface EditorPanelProps {
 
 export function EditorPanel({ onPromptSelected }: EditorPanelProps) {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
+  const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [selectedId, setSelectedId] = useState<string>('');
+  const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(null);
   const [currentPrompt, setCurrentPrompt] = useState<Prompt | null>(null);
   const [mounted, setMounted] = useState(false);
 
-  // Load prompts on mount
+  // Load prompts and datasets on mount
   useEffect(() => {
     const all = getAllPrompts();
+    const allDatasets = getAllDatasets();
     setPrompts(all);
+    setDatasets(allDatasets);
     if (all.length > 0) {
       const toSelect = all[0].id;
       setSelectedId(toSelect);
@@ -100,7 +107,11 @@ export function EditorPanel({ onPromptSelected }: EditorPanelProps) {
 
       <PromptEditor text={currentPrompt.text} onChange={handleUpdateText} />
 
+      <VariableChips text={currentPrompt.text} type={currentPrompt.type} label="Variables" />
+
       <ExpectedOutputSelector value={currentPrompt.expected_output} onChange={handleUpdateExpectedOutput} />
+
+      <DatasetSelector datasets={datasets} selectedId={selectedDatasetId} onSelect={setSelectedDatasetId} />
     </div>
   );
 }
