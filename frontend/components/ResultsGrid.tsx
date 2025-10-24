@@ -173,6 +173,7 @@ interface ResultCellViewProps {
 
 function ResultCellView({ cell, showParsedOnly, metricView, onExpandClick, isActiveRun, isHistoricalView, onRerun }: ResultCellViewProps) {
   const [isHovering, setIsHovering] = useState(false);
+  const [showGraderOverlay, setShowGraderOverlay] = useState(false);
   const isLoading = cell.status === 'running' || cell.status === 'idle';
   const isError = cell.status === 'error';
   const isMalformed = cell.status === 'malformed';
@@ -212,8 +213,11 @@ function ResultCellView({ cell, showParsedOnly, metricView, onExpandClick, isAct
   }
 
   // Determine which text to display based on global toggle
+  // If grader overlay is open, show grader output; otherwise show generator output
   let displayText: string;
-  if (isError) {
+  if (showGraderOverlay && cell.grader_parsed) {
+    displayText = cell.grader_parsed;
+  } else if (isError) {
     displayText = cell.error_message || '(No error message)';
   } else {
     displayText = showParsedOnly && parsed.parsed ? parsed.parsed : cell.output_raw || '(No output)';
@@ -221,28 +225,22 @@ function ResultCellView({ cell, showParsedOnly, metricView, onExpandClick, isAct
 
   const truncatedText = truncate(displayText, 200);
 
-  // Get metric badge text
-  const getMetricBadgeText = (): string => {
-    if (isError || isMalformed) {
-      return '—';
-    }
-    switch (metricView) {
-      case 'grade':
-        return cell.graded_value !== null ? formatGrade(cell.graded_value) : '—';
-      case 'tokens':
-        return formatTokens(cell.tokens_in, cell.tokens_out);
-      case 'cost':
-        return formatCost(cell.cost);
-      case 'latency':
-        return formatLatency(cell.latency_ms);
-    }
-  };
-
   return (
     <div
       className="relative"
       onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
+      onMouseLeave={() => {
+        setIsHovering(false);
+        // Close grader overlay when mouse leaves cell
+        setShowGraderOverlay(false);
+      }}
+      onClick={() => {
+        if (showGraderOverlay) {
+          // Clicking inside grader overlay area doesn't do anything
+          return;
+        }
+        onExpandClick(cell);
+      }}
     >
       <div
         className={`p-3 rounded-md border min-h-[100px] overflow-hidden cursor-pointer hover:shadow-md transition-shadow ${
@@ -252,22 +250,23 @@ function ResultCellView({ cell, showParsedOnly, metricView, onExpandClick, isAct
               ? 'bg-yellow-50 border-yellow-200'
               : 'bg-white border-gray-200'
         }`}
-        onClick={() => onExpandClick(cell)}
       >
         <div className="text-xs text-gray-700 font-mono break-words whitespace-pre-wrap">
           {truncatedText}
         </div>
       </div>
 
-      {/* Badges Overlay */}
-      <div className="absolute top-2 right-2">
-        <span className="text-xs font-medium text-accent">{getMetricBadgeText()}</span>
-      </div>
-
-      {/* Grader Badge - Bottom Right */}
-      {cell.graded_value !== null && (
+      {/* Unified Metric Badge - Bottom Right */}
+      {!isLoading && (
         <div className="absolute bottom-2 right-2 pointer-events-auto">
-          <GraderBadge gradeValue={cell.graded_value} graderOutput={cell.grader_parsed || ''} />
+          <MetricBadge
+            cell={cell}
+            metricView={metricView}
+            showGraderOverlay={showGraderOverlay}
+            onToggleGrader={() => setShowGraderOverlay(!showGraderOverlay)}
+            isError={isError}
+            isMalformed={isMalformed}
+          />
         </div>
       )}
 
@@ -391,40 +390,71 @@ function CellExpandModal({ cell, showParsedOnly, onClose }: CellExpandModalProps
 }
 
 /**
- * Grader badge component - gradient background with grade value inside
+ * Unified metric badge component - displays current metric (grade/tokens/cost/latency)
+ * Interactive when showing grade with grader available
  */
-interface GraderBadgeProps {
-  gradeValue: number;
-  graderOutput: string;
+interface MetricBadgeProps {
+  cell: Cell;
+  metricView: 'grade' | 'tokens' | 'cost' | 'latency';
+  showGraderOverlay: boolean;
+  onToggleGrader: () => void;
+  isError: boolean;
+  isMalformed: boolean;
 }
 
-function GraderBadge({ gradeValue, graderOutput }: GraderBadgeProps) {
-  const [showTooltip, setShowTooltip] = useState(false);
-  const colorClass = gradeToColor(gradeValue);
+function MetricBadge({ cell, metricView, showGraderOverlay, onToggleGrader, isError, isMalformed }: MetricBadgeProps) {
+  const hasGrader = cell.graded_value !== null && cell.grader_parsed;
+  const isGradeView = metricView === 'grade';
+  const isClickable = isGradeView && hasGrader;
 
-  const gradientMap: Record<string, string> = {
-    green: 'bg-gradient-to-br from-green-400 to-green-600',
-    yellow: 'bg-gradient-to-br from-yellow-400 to-yellow-600',
-    red: 'bg-gradient-to-br from-red-400 to-red-600',
-    gray: 'bg-gradient-to-br from-gray-400 to-gray-600',
-  };
+  // Determine badge content based on metric view
+  let badgeContent: string;
+  let badgeColor: string = 'bg-gray-400 to-gray-600';
+
+  if (isError || isMalformed) {
+    badgeContent = '—';
+    badgeColor = 'bg-gradient-to-br from-gray-400 to-gray-600';
+  } else if (isGradeView) {
+    badgeContent = cell.graded_value !== null ? formatGrade(cell.graded_value) : '—';
+    const colorClass = cell.graded_value !== null ? gradeToColor(cell.graded_value) : 'gray';
+    const gradientMap: Record<string, string> = {
+      green: 'bg-gradient-to-br from-green-400 to-green-600',
+      yellow: 'bg-gradient-to-br from-yellow-400 to-yellow-600',
+      red: 'bg-gradient-to-br from-red-400 to-red-600',
+      gray: 'bg-gradient-to-br from-gray-400 to-gray-600',
+    };
+    badgeColor = gradientMap[colorClass];
+  } else if (metricView === 'tokens') {
+    badgeContent = formatTokens(cell.tokens_in, cell.tokens_out);
+  } else if (metricView === 'cost') {
+    badgeContent = formatCost(cell.cost);
+  } else if (metricView === 'latency') {
+    badgeContent = formatLatency(cell.latency_ms);
+  } else {
+    badgeContent = '—';
+  }
+
+  const commonClasses = `px-3 py-2 rounded font-semibold text-white text-sm transition-all shadow-md ${badgeColor}`;
+  const clickableClasses = isClickable ? 'hover:shadow-lg cursor-pointer' : '';
+
+  if (isClickable) {
+    return (
+      <button
+        className={`${commonClasses} ${clickableClasses} ${showGraderOverlay ? 'ring-2 ring-blue-400' : ''}`}
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggleGrader();
+        }}
+        title={hasGrader ? 'Click to view grader output' : undefined}
+      >
+        {badgeContent}
+      </button>
+    );
+  }
 
   return (
-    <div className="relative">
-      <button
-        className={`px-3 py-2 rounded font-semibold text-white text-sm transition-all shadow-md hover:shadow-lg ${gradientMap[colorClass]}`}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
-        title={`Grade: ${formatGrade(gradeValue)}`}
-      >
-        {formatGrade(gradeValue)}
-      </button>
-      {showTooltip && (
-        <div className="absolute bottom-full right-0 mb-2 bg-gray-900 text-white px-2 py-1 rounded text-xs whitespace-nowrap z-10 pointer-events-none">
-          {graderOutput.substring(0, 50)}
-          {graderOutput.length > 50 ? '...' : ''}
-        </div>
-      )}
+    <div className={`${commonClasses} flex items-center justify-center`}>
+      {badgeContent}
     </div>
   );
 }
