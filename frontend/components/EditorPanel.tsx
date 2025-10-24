@@ -17,6 +17,7 @@ import {
   createDataset,
   getDatasetById,
 } from '@/lib/mockRepo.temp';
+import { ModelManager } from './ModelManager';
 
 interface EditorPanelProps {
   onPromptSelected?: (prompt: Prompt) => void;
@@ -34,6 +35,7 @@ export function EditorPanel({ onPromptSelected }: EditorPanelProps) {
   const [selectedId, setSelectedId] = useState<string>('');
   const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(null);
   const [selectedGraderId, setSelectedGraderId] = useState<string | null>(null);
+  const [selectedModelIds, setSelectedModelIds] = useState<string[]>([]);
   const [currentPrompt, setCurrentPrompt] = useState<Prompt | null>(null);
   const [mounted, setMounted] = useState(false);
   const [isRenamingPrompt, setIsRenamingPrompt] = useState(false);
@@ -421,6 +423,9 @@ export function EditorPanel({ onPromptSelected }: EditorPanelProps) {
           </button>
         )}
       </div>
+
+      {/* Model Manager */}
+      <ModelManager selectedModelIds={selectedModelIds} onModelsChange={setSelectedModelIds} />
 
       {/* Dataset Preview Modal */}
       {previewDataset && (

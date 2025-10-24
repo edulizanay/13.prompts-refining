@@ -21,6 +21,9 @@ import {
   setUIState,
   setMetricView,
   setActiveRunId,
+  getAllModels,
+  createModel,
+  deleteModel,
   initializeSeedData,
 } from './mockRepo.temp';
 
@@ -214,11 +217,41 @@ describe('mockRepo.temp', () => {
     });
   });
 
+  describe('Models', () => {
+    it('creates and retrieves models', () => {
+      const model = createModel('OpenAI', 'gpt-4');
+      expect(model.provider).toBe('OpenAI');
+      expect(model.model).toBe('gpt-4');
+      expect(model.id).toBeDefined();
+    });
+
+    it('gets all models', () => {
+      createModel('OpenAI', 'gpt-4-turbo');
+      createModel('Anthropic', 'claude-3-sonnet');
+      const models = getAllModels();
+      expect(models.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('deletes models', () => {
+      const model = createModel('OpenAI', 'gpt-4');
+      const initial = getAllModels().length;
+      deleteModel(model.id);
+      expect(getAllModels().length).toBe(initial - 1);
+    });
+
+    it('generates unique model IDs', () => {
+      const m1 = createModel('OpenAI', 'gpt-4');
+      const m2 = createModel('OpenAI', 'gpt-4');
+      expect(m1.id).not.toBe(m2.id);
+    });
+  });
+
   describe('Seed Data', () => {
     it('initializes seed data only once', () => {
       initializeSeedData();
       expect(getAllPrompts()).toHaveLength(2);
       expect(getAllDatasets()).toHaveLength(1);
+      expect(getAllModels()).toHaveLength(1); // Default gpt-4
 
       initializeSeedData();
       expect(getAllPrompts()).toHaveLength(2); // Should not duplicate

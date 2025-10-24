@@ -1,13 +1,14 @@
 // ABOUTME: TEMP localStorage CRUD for Prompts, Datasets, Runs, Cells
 // ABOUTME: Will be replaced with Supabase repos in Phase 2; DO NOT add business logic here
 
-import { Prompt, Dataset, Run, Cell, UIState, MetricView } from './types';
+import { Prompt, Dataset, Run, Cell, UIState, MetricView, Model } from './types';
 
 const STORAGE_KEYS = {
   PROMPTS: 'prompts',
   DATASETS: 'datasets',
   RUNS: 'runs',
   CELLS: 'cells',
+  MODELS: 'models',
   UI_STATE: 'ui_state',
   INITIALIZED: 'initialized',
 };
@@ -253,6 +254,35 @@ export function setActiveRunId(runId: string | null): void {
   setUIState(state);
 }
 
+// MODELS
+
+export function getAllModels(): Model[] {
+  const data = localStorage.getItem(STORAGE_KEYS.MODELS);
+  return data ? JSON.parse(data) : [];
+}
+
+export function getModelById(id: string): Model | null {
+  const models = getAllModels();
+  return models.find((m) => m.id === id) || null;
+}
+
+export function createModel(provider: string, model: string): Model {
+  const newModel: Model = {
+    id: generateId('model'),
+    provider,
+    model,
+  };
+  const models = getAllModels();
+  models.push(newModel);
+  localStorage.setItem(STORAGE_KEYS.MODELS, JSON.stringify(models));
+  return newModel;
+}
+
+export function deleteModel(id: string): void {
+  const models = getAllModels().filter((m) => m.id !== id);
+  localStorage.setItem(STORAGE_KEYS.MODELS, JSON.stringify(models));
+}
+
 // SEED DATA
 
 export function initializeSeedData(): void {
@@ -288,6 +318,9 @@ export function initializeSeedData(): void {
   ];
 
   createDataset('Sample Questions', ['user_message', 'expected_tone'], rows);
+
+  // 1 default model: gpt-4
+  createModel('OpenAI', 'gpt-4');
 
   localStorage.setItem(STORAGE_KEYS.INITIALIZED, 'true');
 }
