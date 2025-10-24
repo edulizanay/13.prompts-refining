@@ -3,17 +3,37 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
-import { initializeSeedData } from '@/lib/mockRepo.temp';
+import { useEffect, useState, useCallback } from 'react';
+import type { Prompt } from '@/lib/types';
+import { initializeSeedData, getUIState, setActiveRunId } from '@/lib/mockRepo.temp';
 import { EditorPanel } from '@/components/EditorPanel';
+import { ToastContainer } from '@/components/ToastContainer';
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
+  const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(null);
+  const [selectedGraderId, setSelectedGraderId] = useState<string | null>(null);
+  const [selectedModelIds, setSelectedModelIds] = useState<string[]>([]);
+  const [activeRunId, setActiveRunIdState] = useState<string | null>(null);
 
   useEffect(() => {
     // Initialize seed data on first load
     initializeSeedData();
+
+    // Load UI state
+    const uiState = getUIState();
+    setActiveRunIdState(uiState.activeRunId);
+
     setMounted(true);
+  }, []);
+
+  // Update global UI state when activeRunId changes
+  useEffect(() => {
+    setActiveRunId(activeRunId);
+  }, [activeRunId]);
+
+  const handlePromptSelected = useCallback((_prompt: Prompt) => {
+    // Prompt selection is handled internally by EditorPanel
   }, []);
 
   if (!mounted) {
@@ -24,7 +44,17 @@ export default function Home() {
     <div className="flex h-screen w-full bg-background">
       {/* Left Panel: Editor (40%) */}
       <div className="w-2/5 border-r border-accent-dark p-6 overflow-y-auto">
-        <EditorPanel />
+        <EditorPanel
+          onPromptSelected={handlePromptSelected}
+          selectedDatasetId={selectedDatasetId}
+          onDatasetSelected={setSelectedDatasetId}
+          selectedGraderId={selectedGraderId}
+          onGraderSelected={setSelectedGraderId}
+          selectedModelIds={selectedModelIds}
+          onModelsChange={setSelectedModelIds}
+          activeRunId={activeRunId}
+          onActiveRunIdChange={setActiveRunIdState}
+        />
       </div>
 
       {/* Right Panel: Results (60%) */}
@@ -34,6 +64,8 @@ export default function Home() {
           <p className="text-gray-500">Results grid coming soon...</p>
         </div>
       </div>
+
+      <ToastContainer />
     </div>
   );
 }

@@ -12,12 +12,26 @@ import {
   createPrompt,
   updatePrompt,
   renamePrompt,
+  getDatasetById,
+  createRun,
 } from '@/lib/mockRepo.temp';
+import { validateRun } from '@/lib/validateRun';
+import { showErrorToast, showSuccessToast } from '@/lib/toast';
+import { executeRun } from '@/lib/mockRunExecutor.temp';
 import { ModelManager } from './ModelManager';
 import { DatasetSelector } from './DatasetSelector';
+import { RunButton } from './RunButton';
 
 interface EditorPanelProps {
   onPromptSelected?: (prompt: Prompt) => void;
+  selectedDatasetId?: string | null;
+  onDatasetSelected?: (datasetId: string | null) => void;
+  selectedGraderId?: string | null;
+  onGraderSelected?: (graderId: string | null) => void;
+  selectedModelIds?: string[];
+  onModelsChange?: (modelIds: string[]) => void;
+  activeRunId?: string | null;
+  onActiveRunIdChange?: (runId: string | null) => void;
 }
 
 const ONBOARDING_PLACEHOLDER = `Write your prompt here. Use {{variables}} for dynamic inputs.
@@ -26,12 +40,22 @@ Example:
 You are a helpful assistant. The user asks: {{user_message}}
 Respond professionally.`;
 
-export function EditorPanel({ onPromptSelected }: EditorPanelProps) {
+export function EditorPanel({
+  onPromptSelected,
+  selectedDatasetId: propDatasetId,
+  onDatasetSelected,
+  selectedGraderId: propGraderId,
+  onGraderSelected,
+  selectedModelIds: propModelIds,
+  onModelsChange,
+  activeRunId: propActiveRunId,
+  onActiveRunIdChange,
+}: EditorPanelProps) {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [selectedId, setSelectedId] = useState<string>('');
-  const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(null);
-  const [selectedGraderId, setSelectedGraderId] = useState<string | null>(null);
-  const [selectedModelIds, setSelectedModelIds] = useState<string[]>([]);
+  const [localDatasetId, setLocalDatasetId] = useState<string | null>(null);
+  const [localGraderId, setLocalGraderId] = useState<string | null>(null);
+  const [localModelIds, setLocalModelIds] = useState<string[]>([]);
   const [currentPrompt, setCurrentPrompt] = useState<Prompt | null>(null);
   const [mounted, setMounted] = useState(false);
   const [isRenamingPrompt, setIsRenamingPrompt] = useState(false);
@@ -39,8 +63,31 @@ export function EditorPanel({ onPromptSelected }: EditorPanelProps) {
   const [newPromptDialog, setNewPromptDialog] = useState(false);
   const [newPromptName, setNewPromptName] = useState('');
   const [newPromptType, setNewPromptType] = useState<'generator' | 'grader'>('generator');
+  const [isRunning, setIsRunning] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const textIsChangedRef = useRef(false);
+
+  // Use prop values if provided, otherwise use local state
+  const selectedDatasetId = propDatasetId !== undefined ? propDatasetId : localDatasetId;
+  const selectedGraderId = propGraderId !== undefined ? propGraderId : localGraderId;
+  const selectedModelIds = propModelIds !== undefined ? propModelIds : localModelIds;
+  const activeRunId = propActiveRunId !== undefined ? propActiveRunId : null;
+
+  // Sync with props
+  const handleDatasetSelected = (id: string | null) => {
+    setLocalDatasetId(id);
+    onDatasetSelected?.(id);
+  };
+
+  const handleGraderSelected = (id: string | null) => {
+    setLocalGraderId(id);
+    onGraderSelected?.(id);
+  };
+
+  const handleModelsChange = (ids: string[]) => {
+    setLocalModelIds(ids);
+    onModelsChange?.(ids);
+  };
 
   // Load prompts on mount
   useEffect(() => {
@@ -119,6 +166,60 @@ export function EditorPanel({ onPromptSelected }: EditorPanelProps) {
       setPrompts(getAllPrompts());
     }
   };
+
+  const handleRun = async () => {
+    if (!currentPrompt || activeRunId) return;
+
+    // Validate
+    const dataset = selectedDatasetId ? getDatasetById(selectedDatasetId) : null;
+    const grader = selectedGraderId ? getPromptById(selectedGraderId) : null;
+    const errors = validateRun(currentPrompt, dataset, grader);
+
+    if (errors.length > 0) {
+      errors.forEach((error) => showErrorToast(error));
+      return;
+    }
+
+    // Check if models selected
+    if (selectedModelIds.length === 0) {
+      showErrorToast('Please select at least one model');
+      return;
+    }
+
+    try {
+      setIsRunning(true);
+
+      // Increment version counter
+      const updatedPrompt = updatePrompt(currentPrompt.id, {
+        version_counter: currentPrompt.version_counter + 1,
+      });
+      if (!updatedPrompt) {
+        showErrorToast('Failed to update prompt');
+        return;
+      }
+      setCurrentPrompt(updatedPrompt);
+
+      // Create run
+      const versionLabel = `${currentPrompt.type === 'generator' ? 'Generator' : 'Grader'} ${updatedPrompt.version_counter}`;
+      const run = createRun(currentPrompt.id, versionLabel, selectedModelIds, selectedDatasetId, selectedGraderId);
+      onActiveRunIdChange?.(run.id);
+
+      // Show success toast
+      showSuccessToast('Run started');
+
+      // Execute run
+      await executeRun(run, dataset, () => {}, () => {
+        setIsRunning(false);
+        onActiveRunIdChange?.(null);
+      });
+    } catch (error) {
+      console.error('Run error:', error);
+      showErrorToast('Run failed');
+      setIsRunning(false);
+      onActiveRunIdChange?.(null);
+    }
+  };
+
   const placeholders = currentPrompt ? extractPlaceholders(currentPrompt.text) : [];
 
   if (!mounted || !currentPrompt) {
@@ -286,7 +387,7 @@ export function EditorPanel({ onPromptSelected }: EditorPanelProps) {
         <label className="block text-sm font-medium text-gray-700">Grader (Optional)</label>
         <select
           value={selectedGraderId || ''}
-          onChange={(e) => setSelectedGraderId(e.target.value || null)}
+          onChange={(e) => handleGraderSelected(e.target.value || null)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
         >
           <option value="">No grader</option>
@@ -322,10 +423,19 @@ export function EditorPanel({ onPromptSelected }: EditorPanelProps) {
       </div>
 
       {/* Dataset Selector */}
-      <DatasetSelector selectedDatasetId={selectedDatasetId} onDatasetSelected={setSelectedDatasetId} />
+      <DatasetSelector selectedDatasetId={selectedDatasetId} onDatasetSelected={handleDatasetSelected} />
 
       {/* Model Manager */}
-      <ModelManager selectedModelIds={selectedModelIds} onModelsChange={setSelectedModelIds} />
+      <ModelManager selectedModelIds={selectedModelIds} onModelsChange={handleModelsChange} />
+
+      {/* Run Button */}
+      <div className="mt-8 pt-6 border-t border-accent-dark">
+        <RunButton
+          isLoading={isRunning || (activeRunId ? true : false)}
+          disabled={!currentPrompt || selectedModelIds.length === 0}
+          onClick={handleRun}
+        />
+      </div>
     </div>
   );
 }
