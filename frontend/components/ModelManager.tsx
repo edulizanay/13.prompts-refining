@@ -12,13 +12,8 @@ interface ModelManagerProps {
   onModelsChange: (modelIds: string[]) => void;
 }
 
-// Mock model registry: temporary for Phase 1
-const MODEL_REGISTRY = [
-  { provider: 'OpenAI', model: 'gpt-4' },
-  { provider: 'OpenAI', model: 'gpt-4-turbo' },
-  { provider: 'Anthropic', model: 'claude-3-5-sonnet' },
-  { provider: 'Anthropic', model: 'claude-3-opus' },
-];
+// Model registry built from available seed models
+// Used to populate the provider/model dropdowns in the add model dialog
 
 const MAX_MODELS = 4;
 
@@ -26,13 +21,25 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
   const [models, setModels] = useState<Model[]>([]);
   const [mounted, setMounted] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
-  const [selectedProvider, setSelectedProvider] = useState('OpenAI');
-  const [selectedModel, setSelectedModel] = useState('gpt-4');
+  const [selectedProvider, setSelectedProvider] = useState('');
+  const [selectedModel, setSelectedModel] = useState('');
 
-  // Load models on mount
+  // Load models on mount and build registry from available models
   useEffect(() => {
     const allModels = getAllModels();
     setModels(allModels);
+
+    // Build registry from available models
+    if (allModels.length > 0) {
+      const firstProvider = allModels[0].provider;
+      setSelectedProvider(firstProvider);
+
+      const firstModel = allModels.find(m => m.provider === firstProvider);
+      if (firstModel) {
+        setSelectedModel(firstModel.model);
+      }
+    }
+
     setMounted(true);
   }, []);
 
@@ -67,8 +74,8 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
   if (!mounted) return null;
 
   const selectedModels = models.filter((m) => selectedModelIds.includes(m.id));
-  const providers = Array.from(new Set(MODEL_REGISTRY.map((m) => m.provider)));
-  const modelsForProvider = MODEL_REGISTRY.filter((m) => m.provider === selectedProvider);
+  const providers = Array.from(new Set(models.map((m) => m.provider)));
+  const modelsForProvider = models.filter((m) => m.provider === selectedProvider);
 
   return (
     <div className="space-y-2">
@@ -123,7 +130,7 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
                   onChange={(e) => {
                     setSelectedProvider(e.target.value);
                     // Reset model to first of new provider
-                    const first = MODEL_REGISTRY.find((m) => m.provider === e.target.value);
+                    const first = models.find((m) => m.provider === e.target.value);
                     if (first) setSelectedModel(first.model);
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"

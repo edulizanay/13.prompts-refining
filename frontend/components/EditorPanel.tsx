@@ -59,6 +59,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
   const [newPromptName, setNewPromptName] = useState('');
   const [newPromptType, setNewPromptType] = useState<'generator' | 'grader'>('generator');
   const [isRunning, setIsRunning] = useState(false);
+  const [showExpectedOutputTooltip, setShowExpectedOutputTooltip] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const textIsChangedRef = useRef(false);
 
@@ -148,6 +149,8 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
   const handleUpdateExpectedOutput = (expectedOutput: 'none' | 'response' | 'json') => {
     if (!currentPrompt) return;
     const updated = updatePrompt(currentPrompt.id, { expected_output: expectedOutput });
+    setShowExpectedOutputTooltip(true);
+    setTimeout(() => setShowExpectedOutputTooltip(false), 3000);
     if (updated) {
       setCurrentPrompt(updated);
       setPrompts(getAllPrompts());
@@ -317,13 +320,10 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
               className="flex-1 text-2xl font-bold text-gray-900 cursor-pointer hover:text-primary transition-colors"
               title="Click to rename"
             >
-              {currentPrompt.name}
+              {currentPrompt.name} <span className="text-lg text-gray-400">v{currentPrompt.version_counter}</span>
             </h2>
           )}
           <span className={`px-2 py-1 rounded text-sm font-medium ${typeColor}`}>{typeLabel}</span>
-        </div>
-        <div className="text-sm text-gray-500">
-          {typeLabel} {currentPrompt.version_counter}
         </div>
       </div>
 
@@ -381,64 +381,30 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
             ))}
           </div>
         </div>
-        <p className="text-xs text-gray-500">
-          If set and parse fails, cell is marked <span className="font-medium">Malformed</span> and fails in Grade view.
-        </p>
+        {showExpectedOutputTooltip && (
+          <p className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-200">
+            If set and parse fails, cell is marked <span className="font-medium">Malformed</span>.
+          </p>
+        )}
       </div>
 
       {/* Grader Selector */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <label className="block text-sm font-medium text-gray-700">Grader (Optional)</label>
-          <div className="flex gap-2 flex-wrap justify-end">
-            <button
-              onClick={() => handleGraderSelected(null)}
-              className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                !selectedGraderId
-                  ? 'bg-primary text-white'
-                  : 'bg-gray-100 text-gray-700 border border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              None
-            </button>
-            {prompts
-              .filter((p) => p.type === 'grader')
-              .map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => handleGraderSelected(p.id)}
-                  className={`px-3 py-1 text-xs font-medium rounded transition-colors whitespace-nowrap ${
-                    selectedGraderId === p.id
-                      ? 'bg-primary text-white'
-                      : 'bg-gray-100 text-gray-700 border border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  {p.name}
-                </button>
-              ))}
-          </div>
-        </div>
-        <p className="text-xs text-gray-500">
-          Grader runs after each generation and may use {`{{output}}`} placeholder.
-        </p>
-
-        {selectedGraderId && (
-          <div className="space-y-1">
-            <div className="text-xs font-medium text-purple-700">Grader Variables:</div>
-            <div className="flex flex-wrap gap-2">
-              {(() => {
-                const grader = prompts.find((p) => p.id === selectedGraderId);
-                return grader ? (
-                  extractPlaceholders(grader.text).map((v) => (
-                    <span key={v} className="px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-700">
-                      {`{{${v}}}`}
-                    </span>
-                  ))
-                ) : null;
-              })()}
-            </div>
-          </div>
-        )}
+        <label className="block text-sm font-medium text-gray-700">Grader (Optional)</label>
+        <select
+          value={selectedGraderId || ''}
+          onChange={(e) => handleGraderSelected(e.target.value || null)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+        >
+          <option value="">None</option>
+          {prompts
+            .filter((p) => p.type === 'grader')
+            .map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+        </select>
       </div>
 
       {/* Dataset Selector */}
