@@ -64,6 +64,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
   const [newPromptName, setNewPromptName] = useState('');
   const [newPromptType, setNewPromptType] = useState<'generator' | 'grader'>('generator');
   const [isRunning, setIsRunning] = useState(false);
+  const [errorDialog, setErrorDialog] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const textIsChangedRef = useRef(false);
 
@@ -168,14 +169,13 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
     const errors = validateRun(currentPrompt, dataset, grader);
 
     if (errors.length > 0) {
-      // Show first error in alert for now (will be replaced with toast in UX polish)
-      alert(errors[0]);
+      setErrorDialog(errors[0]);
       return;
     }
 
     // Check if models selected
     if (selectedModelIds.length === 0) {
-      alert('Please select at least one model');
+      setErrorDialog('Please select at least one model');
       return;
     }
 
@@ -189,7 +189,8 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
           version_counter: currentPrompt.version_counter + 1,
         }) || currentPrompt;
         if (!updatedPrompt) {
-          alert('Failed to update prompt');
+          setErrorDialog('Failed to update prompt');
+          setIsRunning(false);
           return;
         }
         setCurrentPrompt(updatedPrompt);
@@ -210,7 +211,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
       });
     } catch (error) {
       console.error('Run error:', error);
-      alert('Run failed');
+      setErrorDialog('Run failed');
       setIsRunning(false);
       onActiveRunIdChange?.(null);
     }
@@ -270,6 +271,25 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
             className="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 text-sm font-medium"
           >
             Create
+          </button>
+        </div>
+      </Modal>
+
+      {/* Error Modal */}
+      <Modal
+        isOpen={errorDialog !== null}
+        onClose={() => setErrorDialog(null)}
+        size="small"
+        className="p-6 space-y-4"
+      >
+        <h3 className="text-lg font-semibold text-red-600">Error</h3>
+        <p className="text-sm text-gray-700">{errorDialog}</p>
+        <div className="flex justify-end">
+          <button
+            onClick={() => setErrorDialog(null)}
+            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 text-sm font-medium"
+          >
+            OK
           </button>
         </div>
       </Modal>
@@ -429,12 +449,12 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="text-sm text-left text-gray-700 hover:text-primary cursor-pointer transition-colors p-0 border-0 bg-transparent">
-              {selectedGraderId ? prompts.find(p => p.id === selectedGraderId)?.name : 'No grader selected'}
+              {selectedGraderId ? prompts.find(p => p.id === selectedGraderId)?.name : 'No grader'}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="start">
             <DropdownMenuItem onClick={() => handleGraderSelected(null)}>
-              No grader selected
+              No grader
             </DropdownMenuItem>
             {prompts
               .filter((p) => p.type === 'grader')

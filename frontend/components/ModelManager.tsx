@@ -23,6 +23,7 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
   const [models, setModels] = useState<Model[]>([]);
   const [mounted, setMounted] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
+  const [errorDialog, setErrorDialog] = useState<string | null>(null);
   const [selectedProvider, setSelectedProvider] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
 
@@ -65,7 +66,7 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
 
   const handleAddModel = () => {
     if (selectedModelIds.length >= MAX_MODELS) {
-      alert(`Maximum ${MAX_MODELS} models allowed`);
+      setErrorDialog(`Maximum ${MAX_MODELS} models allowed`);
       return;
     }
 
@@ -199,6 +200,25 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
           </button>
         </div>
         <p className="text-xs text-gray-500 mt-2 text-center">Press <kbd className="bg-gray-100 px-1 rounded text-xs">Esc</kbd> to cancel</p>
+      </Modal>
+
+      {/* Error Modal */}
+      <Modal
+        isOpen={errorDialog !== null}
+        onClose={() => setErrorDialog(null)}
+        size="small"
+        className="p-6 space-y-4"
+      >
+        <h3 className="text-lg font-semibold text-red-600">Error</h3>
+        <p className="text-sm text-gray-700">{errorDialog}</p>
+        <div className="flex justify-end">
+          <button
+            onClick={() => setErrorDialog(null)}
+            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 text-sm font-medium"
+          >
+            OK
+          </button>
+        </div>
       </Modal>
     </div>
   );
