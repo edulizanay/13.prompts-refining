@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react';
 import { Model } from '@/lib/types';
 import { getAllModels, createModel, deleteModel } from '@/lib/mockRepo.temp';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface ModelManagerProps {
   selectedModelIds: string[];
@@ -104,18 +105,20 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
         {selectedModels.map((model) => (
           <div
             key={model.id}
-            className="group relative w-40 p-2 bg-white rounded-md border border-gray-200 hover:border-primary hover:shadow-sm transition-all cursor-pointer"
+            className="group relative w-40 p-2 bg-white rounded-md border border-gray-200 hover:border-primary hover:shadow-sm transition-all cursor-pointer flex items-center justify-between"
             onClick={() => setShowDialog(true)}
             title="Click to change model"
           >
-            <p className="text-xs font-medium text-gray-900 truncate">{model.provider}</p>
-            <p className="text-xs text-gray-500 truncate">{model.model}</p>
+            <div className="flex-1">
+              <p className="text-xs font-medium text-gray-900 truncate">{model.provider}</p>
+              <p className="text-xs text-gray-500 truncate">{model.model}</p>
+            </div>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 handleRemoveModel(model.id);
               }}
-              className="absolute top-1 right-1 text-gray-400 group-hover:text-red-600 font-bold opacity-0 group-hover:opacity-100 transition-opacity"
+              className="flex-shrink-0 ml-2 text-gray-400 group-hover:text-red-600 font-bold transition-colors"
               title="Remove model"
             >
               ✕
@@ -123,7 +126,8 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
           </div>
         ))}
 
-        {/* Plus button - subtle, to the right */}
+        {/* Plus button - subtle, to the right with extra spacing */}
+        <div className="flex-1"></div>
         <button
           onClick={() => setShowDialog(true)}
           disabled={selectedModelIds.length >= MAX_MODELS}
@@ -144,38 +148,47 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
               {/* Provider selector */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Provider</label>
-                <select
-                  value={selectedProvider}
-                  onChange={(e) => {
-                    setSelectedProvider(e.target.value);
-                    // Reset model to first of new provider
-                    const first = models.find((m) => m.provider === e.target.value);
-                    if (first) setSelectedModel(first.model);
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                >
-                  {providers.map((p) => (
-                    <option key={p} value={p}>
-                      {p}
-                    </option>
-                  ))}
-                </select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm text-left bg-white hover:bg-gray-50">
+                      {selectedProvider}
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56">
+                    {providers.map((p) => (
+                      <DropdownMenuItem
+                        key={p}
+                        onClick={() => {
+                          setSelectedProvider(p);
+                          // Reset model to first of new provider
+                          const first = models.find((m) => m.provider === p);
+                          if (first) setSelectedModel(first.model);
+                        }}
+                      >
+                        {p}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               {/* Model selector */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Model</label>
-                <select
-                  value={selectedModel}
-                  onChange={(e) => setSelectedModel(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                >
-                  {modelsForProvider.map((m) => (
-                    <option key={m.model} value={m.model}>
-                      {m.model}
-                    </option>
-                  ))}
-                </select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm text-left bg-white hover:bg-gray-50">
+                      {selectedModel}
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56">
+                    {modelsForProvider.map((m) => (
+                      <DropdownMenuItem key={m.model} onClick={() => setSelectedModel(m.model)}>
+                        {m.model}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
 

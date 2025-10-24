@@ -234,17 +234,23 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
       {/* Prompt Selector */}
       <div className="space-y-2">
         <div className="flex gap-2">
-          <select
-            value={selectedId}
-            onChange={(e) => setSelectedId(e.target.value)}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-          >
-            {prompts.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name} ({p.type})
-              </option>
-            ))}
-          </select>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm text-left bg-white hover:bg-gray-50">
+                {prompts.find(p => p.id === selectedId)?.name || 'Select prompt'}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              {prompts.map((p) => (
+                <DropdownMenuItem key={p.id} onClick={() => setSelectedId(p.id)}>
+                  <div>
+                    <div className="font-medium">{p.name}</div>
+                    <div className="text-xs text-gray-500">{p.type === 'generator' ? 'Generator' : 'Grader'}</div>
+                  </div>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <button
             onClick={() => setNewPromptDialog(true)}
             className="px-3 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 text-sm font-medium"

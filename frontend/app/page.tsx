@@ -81,7 +81,7 @@ export default function Home() {
 
   return (
     <div className="p-6 h-screen w-full bg-background flex flex-col">
-      <div className="flex h-full gap-6">
+      <div className="flex h-full gap-6 p-6">
         {/* Left Panel: Editor (40%) */}
         <div className="w-2/5 border-r border-accent-dark overflow-y-auto px-6">
           <EditorPanel
