@@ -393,9 +393,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
             {placeholders.map((p) => (
               <span
                 key={p}
-                className={`px-2 py-1 rounded text-xs font-medium ${
-                  currentPrompt.type === 'generator' ? 'bg-gray-100 text-gray-700' : 'bg-purple-100 text-purple-700'
-                }`}
+                className="px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-700"
               >
                 {`{{${p}}}`}
               </span>
