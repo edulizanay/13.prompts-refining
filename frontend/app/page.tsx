@@ -8,6 +8,7 @@ import type { Prompt, Run, Dataset } from '@/lib/types';
 import { initializeSeedData, getUIState, setActiveRunId, getRunById, getDatasetById, getAllRuns } from '@/lib/mockRepo.temp';
 import { EditorPanel } from '@/components/EditorPanel';
 import { ResultsGrid } from '@/components/ResultsGrid';
+import { ModelManager } from '@/components/ModelManager';
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
@@ -101,7 +102,6 @@ export default function Home() {
           selectedGraderId={selectedGraderId}
           onGraderSelected={setSelectedGraderId}
           selectedModelIds={selectedModelIds}
-          onModelsChange={setSelectedModelIds}
           activeRunId={activeRunId}
           onActiveRunIdChange={setActiveRunIdState}
         />
@@ -109,6 +109,11 @@ export default function Home() {
 
       {/* Right Panel: Results (60%) */}
       <div className="w-3/5 p-6 overflow-y-auto flex flex-col">
+        {/* Model Manager */}
+        <div className="mb-4">
+          <ModelManager selectedModelIds={selectedModelIds} onModelsChange={setSelectedModelIds} />
+        </div>
+
         <div className="space-y-4 flex-1">
           {/* Tabs */}
           <div className="flex gap-4 border-b border-gray-200">

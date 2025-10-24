@@ -17,7 +17,6 @@ import {
 } from '@/lib/mockRepo.temp';
 import { validateRun } from '@/lib/utils';
 import { executeRun } from '@/lib/mockRunExecutor.temp';
-import { ModelManager } from './ModelManager';
 import { DatasetSelector } from './DatasetSelector';
 
 interface EditorPanelProps {
@@ -27,7 +26,6 @@ interface EditorPanelProps {
   selectedGraderId?: string | null;
   onGraderSelected?: (graderId: string | null) => void;
   selectedModelIds?: string[];
-  onModelsChange?: (modelIds: string[]) => void;
   activeRunId?: string | null;
   onActiveRunIdChange?: (runId: string | null) => void;
 }
@@ -46,7 +44,6 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
     selectedGraderId: propGraderId,
     onGraderSelected,
     selectedModelIds: propModelIds,
-    onModelsChange,
     activeRunId: propActiveRunId,
     onActiveRunIdChange,
   }, ref) {
@@ -54,7 +51,6 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
   const [selectedId, setSelectedId] = useState<string>('');
   const [localDatasetId, setLocalDatasetId] = useState<string | null>(null);
   const [localGraderId, setLocalGraderId] = useState<string | null>(null);
-  const [localModelIds, setLocalModelIds] = useState<string[]>([]);
   const [currentPrompt, setCurrentPrompt] = useState<Prompt | null>(null);
   const [mounted, setMounted] = useState(false);
   const [isRenamingPrompt, setIsRenamingPrompt] = useState(false);
@@ -69,7 +65,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
   // Use prop values if provided, otherwise use local state
   const selectedDatasetId = propDatasetId !== undefined ? propDatasetId : localDatasetId;
   const selectedGraderId = propGraderId !== undefined ? propGraderId : localGraderId;
-  const selectedModelIds = propModelIds !== undefined ? propModelIds : localModelIds;
+  const selectedModelIds = propModelIds || [];
   const activeRunId = propActiveRunId !== undefined ? propActiveRunId : null;
 
   // Sync with props
@@ -81,11 +77,6 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
   const handleGraderSelected = (id: string | null) => {
     setLocalGraderId(id);
     onGraderSelected?.(id);
-  };
-
-  const handleModelsChange = (ids: string[]) => {
-    setLocalModelIds(ids);
-    onModelsChange?.(ids);
   };
 
   // Load prompts on mount
@@ -452,9 +443,6 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
 
       {/* Dataset Selector */}
       <DatasetSelector selectedDatasetId={selectedDatasetId} onDatasetSelected={handleDatasetSelected} />
-
-      {/* Model Manager */}
-      <ModelManager selectedModelIds={selectedModelIds} onModelsChange={handleModelsChange} />
 
       {/* Run Button */}
       <div className="mt-8 pt-6 border-t border-accent-dark">
