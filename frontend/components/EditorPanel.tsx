@@ -6,6 +6,8 @@
 import { useState, useEffect, useRef, useImperativeHandle, useCallback, forwardRef } from 'react';
 import { Prompt } from '@/lib/types';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { Kbd } from '@/components/ui/kbd';
 import { extractPlaceholders } from '@/lib/utils';
 import {
   getAllPrompts,
@@ -60,7 +62,6 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
   const [newPromptName, setNewPromptName] = useState('');
   const [newPromptType, setNewPromptType] = useState<'generator' | 'grader'>('generator');
   const [isRunning, setIsRunning] = useState(false);
-  const [showExpectedOutputTooltip, setShowExpectedOutputTooltip] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const textIsChangedRef = useRef(false);
 
@@ -150,8 +151,6 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
   const handleUpdateExpectedOutput = (expectedOutput: 'none' | 'response' | 'json') => {
     if (!currentPrompt) return;
     const updated = updatePrompt(currentPrompt.id, { expected_output: expectedOutput });
-    setShowExpectedOutputTooltip(true);
-    setTimeout(() => setShowExpectedOutputTooltip(false), 3000);
     if (updated) {
       setCurrentPrompt(updated);
       setPrompts(getAllPrompts());
@@ -340,39 +339,40 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary font-mono text-sm resize-none min-h-[300px]"
         />
         {/* Run Button Overlay */}
-        <div className="absolute bottom-2 right-2 group">
-          <button
+        <div className="absolute bottom-4 right-4 group">
+          <Button
             onClick={handleRun}
             disabled={(isRunning || activeRunId ? true : false) || !currentPrompt || selectedModelIds.length === 0}
-            title="Save Changes"
-            className={`px-3 py-1.5 rounded text-sm font-medium transition-all ${
-              isRunning || activeRunId || !currentPrompt || selectedModelIds.length === 0
-                ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                : 'bg-primary text-white hover:bg-opacity-90 active:bg-opacity-80'
-            }`}
+            variant="outline"
+            size="sm"
+            className="pr-2"
           >
             {isRunning || activeRunId ? (
-              <svg
-                className="w-4 h-4 animate-spin"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
+              <>
+                <svg
+                  className="w-4 h-4 animate-spin"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+              </>
             ) : (
-              'Run'
+              <>
+                Run <Kbd>⏎</Kbd>
+              </>
             )}
-          </button>
+          </Button>
           {/* Tooltip */}
           <div className="absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
             <div className="bg-gray-900 text-white text-xs py-1 px-2 rounded shadow-lg">
-              Save Changes <kbd className="bg-gray-800 px-1.5 py-0.5 rounded text-xs ml-1">Ctrl+Enter</kbd>
+              Save Changes <kbd className="bg-gray-800 px-1.5 py-0.5 rounded text-xs ml-1">Ctrl+⏎</kbd>
             </div>
           </div>
         </div>
@@ -402,7 +402,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="text-sm text-left text-gray-700 hover:text-primary cursor-pointer transition-colors p-0 border-0 bg-transparent">
-              Expected Output: <span className="font-medium">{currentPrompt.expected_output === 'none' ? 'No parsing' : currentPrompt.expected_output === 'response' ? 'Extract <response> tags' : 'JSON'}</span>
+              {currentPrompt.expected_output === 'none' ? 'No parsing' : currentPrompt.expected_output === 'response' ? 'Extract <response> tags' : 'JSON'}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56">
@@ -417,11 +417,6 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        {showExpectedOutputTooltip && (
-          <p className="text-xs text-gray-500">
-            If set and parse fails, cell is marked <span className="font-medium">Malformed</span>.
-          </p>
-        )}
       </div>
 
       {/* Grader Selector */}
@@ -429,7 +424,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="text-sm text-left text-gray-700 hover:text-primary cursor-pointer transition-colors p-0 border-0 bg-transparent">
-              Grader (Optional): <span className="font-medium">{selectedGraderId ? prompts.find(p => p.id === selectedGraderId)?.name : 'No grader selected'}</span>
+              {selectedGraderId ? prompts.find(p => p.id === selectedGraderId)?.name : 'No grader selected'}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56">

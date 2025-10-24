@@ -130,7 +130,7 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
         <button
           onClick={() => setShowDialog(true)}
           disabled={selectedModelIds.length >= MAX_MODELS}
-          className="ml-4 text-lg text-gray-400 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="ml-4 text-2xl text-gray-400 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           title="Add model"
         >
           +
