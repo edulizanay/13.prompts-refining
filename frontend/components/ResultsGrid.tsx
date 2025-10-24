@@ -409,19 +409,19 @@ function MetricBadge({ cell, metricView, showGraderOverlay, onToggleGrader, isEr
 
   // Determine badge content based on metric view
   let badgeContent: string;
-  let badgeColor: string = 'bg-gradient-to-br from-purple-200 to-purple-300';
+  let badgeColor: string = 'bg-gradient-to-br from-purple-200 to-purple-300 text-purple-900';
 
   if (isError || isMalformed) {
     badgeContent = '—';
-    badgeColor = 'bg-gradient-to-br from-purple-200 to-purple-300';
+    badgeColor = 'bg-gradient-to-br from-purple-200 to-purple-300 text-purple-900';
   } else if (isGradeView) {
     badgeContent = cell.graded_value !== null ? formatGrade(cell.graded_value) : '—';
     const colorClass = cell.graded_value !== null ? gradeToColor(cell.graded_value) : 'gray';
     const gradientMap: Record<string, string> = {
-      green: 'bg-gradient-to-br from-emerald-300 to-emerald-500',
-      yellow: 'bg-gradient-to-br from-amber-300 to-amber-500',
-      red: 'bg-gradient-to-br from-red-400 to-red-600',
-      gray: 'bg-gradient-to-br from-purple-200 to-purple-300',
+      green: 'bg-gradient-to-br from-emerald-300 to-emerald-500 text-white',
+      yellow: 'bg-gradient-to-br from-amber-300 to-amber-500 text-white',
+      red: 'bg-red-50 text-red-700 border border-red-200',
+      gray: 'bg-gradient-to-br from-purple-200 to-purple-300 text-purple-900',
     };
     badgeColor = gradientMap[colorClass];
   } else if (metricView === 'tokens') {
@@ -434,7 +434,7 @@ function MetricBadge({ cell, metricView, showGraderOverlay, onToggleGrader, isEr
     badgeContent = '—';
   }
 
-  const commonClasses = `min-w-[90px] px-3 py-2 rounded-lg font-semibold text-white text-sm transition-all shadow-md text-center ${badgeColor}`;
+  const commonClasses = `min-w-[63px] px-2 py-1.5 rounded-lg font-semibold text-[0.6125rem] leading-tight transition-all shadow-md text-center ${badgeColor}`;
   const clickableClasses = isClickable ? 'hover:shadow-lg cursor-pointer' : '';
 
   if (isClickable) {
