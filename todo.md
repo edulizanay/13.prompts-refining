@@ -21,10 +21,10 @@
 
 * [x] **Prompt 6**: Model Selection
 * [x] **Prompt 7**: Run Validation & Execution
-* [ ] **Prompt 8**: Results Grid Structure & Mock Execution
 
 ### Results Display
 
+* [x] **Prompt 8**: Results Grid Structure & Mock Execution
 * [ ] **Prompt 9**: Cell Content Display & Expand
 * [ ] **Prompt 10**: Cell Overlays & Badges
 * [ ] **Prompt 11**: Grader Integration
@@ -42,9 +42,9 @@
 
 ## Current Prompt
 
-**Active**: Prompt 8 - Results Grid Structure & Mock Execution
-**Just Completed**: Prompt 7 - Run Validation & Execution
-**Next**: Prompt 8 - Results Grid Structure & Mock Execution
+**Active**: None (ready for next prompt)
+**Just Completed**: Prompt 8 - Results Grid Structure & Mock Execution (+ restructure for spec compliance)
+**Next**: Prompt 9 - Cell Content Display & Expand
 
 ---
 
