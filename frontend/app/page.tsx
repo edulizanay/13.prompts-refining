@@ -5,6 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import { initializeSeedData } from '@/lib/mockRepo.temp';
+import { EditorPanel } from '@/components/EditorPanel';
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
@@ -23,10 +24,7 @@ export default function Home() {
     <div className="flex h-screen w-full bg-background">
       {/* Left Panel: Editor (40%) */}
       <div className="w-2/5 border-r border-accent-dark p-6 overflow-y-auto">
-        <div className="space-y-4">
-          <h1 className="text-3xl font-bold text-gray-900">Editor</h1>
-          <p className="text-gray-500">Prompt editing panel coming soon...</p>
-        </div>
+        <EditorPanel />
       </div>
 
       {/* Right Panel: Results (60%) */}
