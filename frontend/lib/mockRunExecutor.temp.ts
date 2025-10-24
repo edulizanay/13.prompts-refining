@@ -2,9 +2,26 @@
 // ABOUTME: Will be replaced with real API calls in Phase 2; enforces single active run
 
 import { Run, Cell, Dataset } from './types';
-import { upsertCell } from './mockRepo.temp';
+import { upsertCell, getPromptById } from './mockRepo.temp';
+import { normalizeGrade } from './utils';
 
 export type ExecutionUpdate = (cell: Cell) => void;
+
+/**
+ * Generate mock grader output
+ */
+export function generateMockGrader(): { thinking: string; response: string } {
+  const gradeOptions = [
+    { thinking: 'The response is well-structured and comprehensive.', response: 'Yes' },
+    { thinking: 'The response has some issues but is mostly correct.', response: 'Partial' },
+    { thinking: 'The response does not meet the requirements.', response: 'No' },
+    { thinking: 'This is a high-quality response that exceeds expectations.', response: '5' },
+    { thinking: 'This is an average response that meets basic requirements.', response: '3' },
+    { thinking: 'This response is below expectations.', response: '1' },
+  ];
+
+  return gradeOptions[Math.floor(Math.random() * gradeOptions.length)];
+}
 
 /**
  * Generate mock cell data for a single execution
@@ -59,6 +76,7 @@ export async function executeRun(
   try {
     const models = run.model_ids;
     const rows = dataset ? dataset.rows : [{}]; // 1 row if no dataset
+    const grader = run.grader_id ? getPromptById(run.grader_id) : null;
 
     // Execute cells in sequence (for simplicity)
     for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
@@ -96,9 +114,29 @@ export async function executeRun(
             ...mockData,
           };
 
+          // If cell is OK and grader selected, run grader
+          let finalCell = updatedCell;
+          if (updatedCell.status === 'ok' && grader) {
+            // Simulate grader delay
+            const graderDelay = Math.floor(Math.random() * 500) + 300;
+            await new Promise((resolve) => setTimeout(resolve, graderDelay));
+
+            // Generate grader output
+            const graderOutput = generateMockGrader();
+            const graderFullRaw = `<thinking>${graderOutput.thinking}</thinking>\n<response>${graderOutput.response}</response>`;
+            const gradedValue = normalizeGrade(graderOutput.response);
+
+            finalCell = {
+              ...updatedCell,
+              graded_value: gradedValue,
+              grader_full_raw: graderFullRaw,
+              grader_parsed: graderOutput.response,
+            };
+          }
+
           // Save to repo
-          upsertCell(updatedCell);
-          onCellUpdate(updatedCell);
+          upsertCell(finalCell);
+          onCellUpdate(finalCell);
         } catch (error) {
           console.error(`Error executing cell for run ${run.id}:`, error);
         }

@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import { Run, Cell, Dataset } from '@/lib/types';
-import { truncate, parseOutput, formatGrade, formatTokens, formatCost, formatLatency } from '@/lib/utils';
+import { truncate, parseOutput, formatGrade, formatTokens, formatCost, formatLatency, gradeToColor } from '@/lib/utils';
 import { getCellsByRunId, getModelById, upsertCell } from '@/lib/mockRepo.temp';
 import { generateMockCell } from '@/lib/mockRunExecutor.temp';
 
@@ -253,10 +253,15 @@ function ResultCellView({ cell, showParsedOnly, metricView, onExpandClick, isAct
             {truncatedText}
           </div>
 
-          {/* Metric badge */}
-          <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+          {/* Metric badge and Grader badge */}
+          <div className="flex justify-between items-center pt-2 border-t border-gray-100 gap-2">
             <span className="text-xs text-gray-500">Click to expand</span>
-            <span className="text-xs font-medium text-accent">{getMetricBadgeText()}</span>
+            <div className="flex items-center gap-1">
+              {cell.graded_value !== null && (
+                <GraderBadge gradeValue={cell.graded_value} graderOutput={cell.grader_parsed || ''} />
+              )}
+              <span className="text-xs font-medium text-accent">{getMetricBadgeText()}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -376,6 +381,44 @@ function CellExpandModal({ cell, showParsedOnly, onClose }: CellExpandModalProps
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Grader badge component
+ */
+interface GraderBadgeProps {
+  gradeValue: number;
+  graderOutput: string;
+}
+
+function GraderBadge({ gradeValue, graderOutput }: GraderBadgeProps) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const colorClass = gradeToColor(gradeValue);
+  const colorMap: Record<string, string> = {
+    green: 'bg-green-100 text-green-700 border-green-200',
+    yellow: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+    red: 'bg-red-100 text-red-700 border-red-200',
+    gray: 'bg-gray-100 text-gray-700 border-gray-200',
+  };
+
+  return (
+    <div className="relative">
+      <button
+        className={`px-2 py-1 rounded text-xs font-medium border transition-all ${colorMap[colorClass]}`}
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+        title={`Grade: ${formatGrade(gradeValue)}`}
+      >
+        ✓
+      </button>
+      {showTooltip && (
+        <div className="absolute -top-12 right-0 bg-gray-900 text-white px-2 py-1 rounded text-xs whitespace-nowrap z-10 pointer-events-none">
+          {graderOutput.substring(0, 30)}
+          {graderOutput.length > 30 ? '...' : ''}
+        </div>
+      )}
     </div>
   );
 }
