@@ -4,6 +4,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { Run, Cell, Dataset } from '@/lib/types';
 import { truncate, parseOutput, formatGrade, formatTokens, formatCost, formatLatency, gradeToStyles } from '@/lib/utils';
 import { getCellsByRunId, getModelById, upsertCell } from '@/lib/mockRepo.temp';
@@ -454,16 +455,16 @@ function MetricBadge({ cell, metricView, showGraderOverlay, onToggleGrader, isEr
           e.stopPropagation();
           handleManualToggle();
         }}
-        className={`flex items-center justify-center gap-1 min-w-[63px] px-2 py-1.5 rounded-lg font-semibold text-[0.6125rem] leading-tight transition-all shadow-md border ${
+        className={`flex items-center justify-center min-w-[63px] px-2 py-1.5 rounded-lg font-semibold text-[0.6125rem] leading-tight transition-all shadow-md border ${
           isNeutral
             ? 'bg-gradient-to-br from-purple-200 to-purple-300 text-purple-900 border-purple-300 hover:from-purple-300 hover:to-purple-400'
             : `${styles.bgClass} ${styles.textClass} border ${styles.borderClass}`
         }`}
         title="Click to toggle pass/fail"
       >
-        {isGreen && <span>👍</span>}
-        {isRed && <span>👎</span>}
-        {isNeutral && <span className="opacity-40">👍</span>}
+        {isGreen && <ThumbsUp className="w-4 h-4" />}
+        {isRed && <ThumbsDown className="w-4 h-4" />}
+        {isNeutral && <ThumbsUp className="w-4 h-4 opacity-40" />}
       </button>
     );
   }
