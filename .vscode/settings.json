@@ -1,0 +1,20 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.env": false,
+        "**/package.json": true,
+        "**/package-lock.json": true,
+        "**/.gitignore": true,
+        "**/next.config.js": true,
+        "**/postcss.config.js": true,
+        "**/tailwind.config.ts": true,
+        "**/tsconfig.json": true,
+        "**/tsconfig.node.json": true,
+        "**/next-env.d.ts": true,
+        "**/jest.config.js": true,
+        "**/jest.setup.js": true,
+        "**/.next": true,
+        "**/node_modules": true,
+        "**/coverage": true
+    }
+}
