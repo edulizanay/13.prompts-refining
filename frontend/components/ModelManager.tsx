@@ -118,7 +118,7 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
                 e.stopPropagation();
                 handleRemoveModel(model.id);
               }}
-              className="flex-shrink-0 ml-2 text-gray-400 group-hover:text-red-600 font-bold transition-colors"
+              className="flex-shrink-0 ml-2 text-gray-400 group-hover:text-gray-400 font-bold transition-colors opacity-0 group-hover:opacity-100"
               title="Remove model"
             >
               ✕

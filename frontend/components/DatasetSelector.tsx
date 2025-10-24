@@ -78,7 +78,7 @@ export function DatasetSelector({ selectedDatasetId, onDatasetSelected }: Datase
               <span className="inline-block w-3 h-3 border-2 border-gray-700 border-t-transparent rounded-full animate-spin"></span>
             </>
           ) : (
-            '+ Upload'
+            '+ Upload Dataset'
           )}
         </button>
         {selectedDataset && (

@@ -226,9 +226,6 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
     return <div className="text-gray-500">Loading editor...</div>;
   }
 
-  const typeColor = currentPrompt.type === 'generator' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800';
-  const typeLabel = currentPrompt.type === 'generator' ? 'Generator' : 'Grader';
-
   return (
     <div className="space-y-6 h-full overflow-y-auto pb-8">
       {/* Prompt Selector */}
@@ -330,12 +327,11 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
               {currentPrompt.name} <span className="text-lg text-gray-400">v{currentPrompt.version_counter}</span>
             </h2>
           )}
-          <span className={`px-2 py-1 rounded text-sm font-medium ${typeColor}`}>{typeLabel}</span>
         </div>
       </div>
 
       {/* Prompt Editor */}
-      <div className="space-y-2">
+      <div className="relative">
         <textarea
           ref={textareaRef}
           value={currentPrompt.text}
@@ -343,6 +339,43 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
           placeholder={ONBOARDING_PLACEHOLDER}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary font-mono text-sm resize-none min-h-[300px]"
         />
+        {/* Run Button Overlay */}
+        <div className="absolute bottom-2 right-2 group">
+          <button
+            onClick={handleRun}
+            disabled={(isRunning || activeRunId ? true : false) || !currentPrompt || selectedModelIds.length === 0}
+            title="Save Changes"
+            className={`px-3 py-1.5 rounded text-sm font-medium transition-all ${
+              isRunning || activeRunId || !currentPrompt || selectedModelIds.length === 0
+                ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                : 'bg-primary text-white hover:bg-opacity-90 active:bg-opacity-80'
+            }`}
+          >
+            {isRunning || activeRunId ? (
+              <svg
+                className="w-4 h-4 animate-spin"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+            ) : (
+              'Run'
+            )}
+          </button>
+          {/* Tooltip */}
+          <div className="absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+            <div className="bg-gray-900 text-white text-xs py-1 px-2 rounded shadow-lg">
+              Save Changes <kbd className="bg-gray-800 px-1.5 py-0.5 rounded text-xs ml-1">Ctrl+Enter</kbd>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Variables */}
@@ -366,14 +399,13 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
 
       {/* Expected Output */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">Expected Output</label>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm text-left bg-white hover:bg-gray-50">
-              {currentPrompt.expected_output === 'none' ? 'No parsing' : currentPrompt.expected_output === 'response' ? 'Extract <response> tags' : 'JSON'}
+            <button className="text-sm text-left text-gray-700 hover:text-primary cursor-pointer transition-colors p-0 border-0 bg-transparent">
+              Expected Output: <span className="font-medium">{currentPrompt.expected_output === 'none' ? 'No parsing' : currentPrompt.expected_output === 'response' ? 'Extract <response> tags' : 'JSON'}</span>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-full">
+          <DropdownMenuContent className="w-56">
             <DropdownMenuItem onClick={() => handleUpdateExpectedOutput('none')}>
               No parsing
             </DropdownMenuItem>
@@ -394,14 +426,13 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
 
       {/* Grader Selector */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">Grader (Optional)</label>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm text-left bg-white hover:bg-gray-50">
-              {selectedGraderId ? prompts.find(p => p.id === selectedGraderId)?.name : 'No grader selected'}
+            <button className="text-sm text-left text-gray-700 hover:text-primary cursor-pointer transition-colors p-0 border-0 bg-transparent">
+              Grader (Optional): <span className="font-medium">{selectedGraderId ? prompts.find(p => p.id === selectedGraderId)?.name : 'No grader selected'}</span>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-full">
+          <DropdownMenuContent className="w-56">
             <DropdownMenuItem onClick={() => handleGraderSelected(null)}>
               No grader selected
             </DropdownMenuItem>
@@ -418,40 +449,6 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
 
       {/* Dataset Selector */}
       <DatasetSelector selectedDatasetId={selectedDatasetId} onDatasetSelected={handleDatasetSelected} />
-
-      {/* Run Button */}
-      <div className="mt-8">
-        <button
-          onClick={handleRun}
-          disabled={(isRunning || activeRunId ? true : false) || !currentPrompt || selectedModelIds.length === 0}
-          className={`w-full px-4 py-2 rounded-md font-medium transition-all flex items-center justify-center gap-2 ${
-            isRunning || activeRunId || !currentPrompt || selectedModelIds.length === 0
-              ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-              : 'bg-primary text-white hover:bg-opacity-90 active:bg-opacity-80'
-          }`}
-        >
-          {isRunning || activeRunId ? (
-            <>
-              <svg
-                className="w-4 h-4 animate-spin"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
-              <span>Loading…</span>
-            </>
-          ) : (
-            <span>Run</span>
-          )}
-        </button>
-      </div>
     </div>
   );
   }
