@@ -319,8 +319,19 @@ export function initializeSeedData(): void {
 
   createDataset('Sample Questions', ['user_message', 'expected_tone'], rows);
 
-  // 1 default model: gpt-4
-  createModel('OpenAI', 'gpt-4');
+  // Initialize with latest models
+  // Cerebras
+  createModel('Cerebras', 'gpt-oss-120b');
+  createModel('Cerebras', 'llama3.1-8b');
+  createModel('Cerebras', 'llama-3.3-70b');
+
+  // Groq (OpenAI-compatible API)
+  createModel('Groq', 'openai/gpt-oss-120b');
+  createModel('Groq', 'llama-3.3-70b-versatile');
+
+  // OpenRouter
+  createModel('OpenRouter', 'z-ai/glm-4.5-air:free');
+  createModel('OpenRouter', 'meta-llama/llama-3.3-70b-instruct:free');
 
   localStorage.setItem(STORAGE_KEYS.INITIALIZED, 'true');
 }
