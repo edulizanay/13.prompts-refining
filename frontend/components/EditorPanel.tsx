@@ -130,11 +130,8 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
     if (updated) {
       setCurrentPrompt(updated);
       setPrompts(getAllPrompts());
+      textIsChangedRef.current = true;
     }
-    textIsChangedRef.current = true;
-    setTimeout(() => {
-      textIsChangedRef.current = false;
-    }, 500);
   };
 
   const handleRenamePrompt = () => {
@@ -189,15 +186,19 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
     try {
       setIsRunning(true);
 
-      // Increment version counter
-      const updatedPrompt = updatePrompt(currentPrompt.id, {
-        version_counter: currentPrompt.version_counter + 1,
-      });
-      if (!updatedPrompt) {
-        alert('Failed to update prompt');
-        return;
+      // Increment version counter only if text was edited since last run
+      let updatedPrompt = currentPrompt;
+      if (textIsChangedRef.current) {
+        updatedPrompt = updatePrompt(currentPrompt.id, {
+          version_counter: currentPrompt.version_counter + 1,
+        }) || currentPrompt;
+        if (!updatedPrompt) {
+          alert('Failed to update prompt');
+          return;
+        }
+        setCurrentPrompt(updatedPrompt);
+        textIsChangedRef.current = false;
       }
-      setCurrentPrompt(updatedPrompt);
 
       // Create run
       const versionLabel = `${currentPrompt.type === 'generator' ? 'Generator' : 'Grader'} ${updatedPrompt.version_counter}`;
