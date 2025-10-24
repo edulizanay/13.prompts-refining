@@ -17,6 +17,8 @@ export default function Home() {
   const [activeRunId, setActiveRunIdState] = useState<string | null>(null);
   const [currentRun, setCurrentRun] = useState<Run | null>(null);
   const [currentDataset, setCurrentDataset] = useState<Dataset | null>(null);
+  const [metricView] = useState<'grade' | 'tokens' | 'cost' | 'latency'>('grade');
+  const [showParsedOnly] = useState(false);
 
   useEffect(() => {
     // Initialize seed data on first load
@@ -81,7 +83,12 @@ export default function Home() {
         <div className="space-y-4">
           <h1 className="text-3xl font-bold text-gray-900">Results</h1>
           {currentRun ? (
-            <ResultsGrid run={currentRun} dataset={currentDataset} />
+            <ResultsGrid
+              run={currentRun}
+              dataset={currentDataset}
+              metricView={metricView}
+              showParsedOnly={showParsedOnly}
+            />
           ) : (
             <p className="text-gray-500">Run a prompt to see results here</p>
           )}
