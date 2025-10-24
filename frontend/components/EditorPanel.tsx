@@ -1,23 +1,20 @@
-// ABOUTME: Left panel - prompt editing, dataset selection, expected output configuration
-// ABOUTME: Consolidates editor, header, selector, variables, dataset management inline
+// ABOUTME: Left panel - prompt editing, expected output configuration
+// ABOUTME: Handles prompt selection, editing, grader selection, and model management
 
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Prompt, Dataset } from '@/lib/types';
+import { Prompt } from '@/lib/types';
 import { extractPlaceholders } from '@/lib/utils';
-import { parseDatasetFile } from '@/lib/csvParser';
 import {
   getAllPrompts,
   getPromptById,
   createPrompt,
   updatePrompt,
   renamePrompt,
-  getAllDatasets,
-  createDataset,
-  getDatasetById,
 } from '@/lib/mockRepo.temp';
 import { ModelManager } from './ModelManager';
+import { DatasetSelector } from './DatasetSelector';
 
 interface EditorPanelProps {
   onPromptSelected?: (prompt: Prompt) => void;
@@ -31,7 +28,6 @@ Respond professionally.`;
 
 export function EditorPanel({ onPromptSelected }: EditorPanelProps) {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
-  const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [selectedId, setSelectedId] = useState<string>('');
   const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(null);
   const [selectedGraderId, setSelectedGraderId] = useState<string | null>(null);
@@ -43,19 +39,13 @@ export function EditorPanel({ onPromptSelected }: EditorPanelProps) {
   const [newPromptDialog, setNewPromptDialog] = useState(false);
   const [newPromptName, setNewPromptName] = useState('');
   const [newPromptType, setNewPromptType] = useState<'generator' | 'grader'>('generator');
-  const [previewDatasetId, setPreviewDatasetId] = useState<string | null>(null);
-  const [uploadLoading, setUploadLoading] = useState(false);
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const textIsChangedRef = useRef(false);
 
-  // Load prompts and datasets on mount
+  // Load prompts on mount
   useEffect(() => {
     const all = getAllPrompts();
-    const allDatasets = getAllDatasets();
     setPrompts(all);
-    setDatasets(allDatasets);
     if (all.length > 0) {
       const toSelect = all[0].id;
       setSelectedId(toSelect);
@@ -87,11 +77,6 @@ export function EditorPanel({ onPromptSelected }: EditorPanelProps) {
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
   }, [currentPrompt?.text]);
-
-  const showToast = (type: 'success' | 'error', message: string) => {
-    setToast({ type, message });
-    setTimeout(() => setToast(null), 3000);
-  };
 
   const handleUpdateText = (text: string) => {
     if (!currentPrompt) return;
@@ -134,33 +119,6 @@ export function EditorPanel({ onPromptSelected }: EditorPanelProps) {
       setPrompts(getAllPrompts());
     }
   };
-
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploadLoading(true);
-    try {
-      const text = await file.text();
-      const result = parseDatasetFile(text, file.name);
-      const datasetName = file.name.replace(/\.(csv|json)$/, '');
-      const newDataset = createDataset(datasetName, result.headers, result.rows);
-      setDatasets(getAllDatasets());
-      setSelectedDatasetId(newDataset.id);
-      showToast('success', `Uploaded "${datasetName}" with ${result.rowCount} rows`);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to parse file';
-      showToast('error', message);
-    } finally {
-      setUploadLoading(false);
-    }
-  };
-
-  const selectedDataset = selectedDatasetId ? datasets.find((d) => d.id === selectedDatasetId) : null;
-  const previewDataset = previewDatasetId ? getDatasetById(previewDatasetId) : null;
   const placeholders = currentPrompt ? extractPlaceholders(currentPrompt.text) : [];
 
   if (!mounted || !currentPrompt) {
@@ -364,118 +322,10 @@ export function EditorPanel({ onPromptSelected }: EditorPanelProps) {
       </div>
 
       {/* Dataset Selector */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">Dataset</label>
-        <select
-          value={selectedDatasetId || ''}
-          onChange={(e) => setSelectedDatasetId(e.target.value || null)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-        >
-          <option value="">No dataset</option>
-          {datasets.map((d) => (
-            <option key={d.id} value={d.id}>
-              {d.name} ({d.row_count} rows)
-            </option>
-          ))}
-        </select>
-
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".csv,.json"
-          onChange={handleFileSelect}
-          disabled={uploadLoading}
-          className="hidden"
-        />
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploadLoading}
-          className="w-full px-3 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          {uploadLoading ? (
-            <>
-              <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-              Uploading...
-            </>
-          ) : (
-            'Upload Dataset (CSV/JSON)'
-          )}
-        </button>
-
-        {toast && (
-          <div
-            className={`p-3 rounded-md text-sm ${
-              toast.type === 'success'
-                ? 'bg-green-100 text-green-700'
-                : 'bg-red-100 text-red-700'
-            }`}
-          >
-            {toast.message}
-          </div>
-        )}
-
-        {selectedDataset && (
-          <button
-            onClick={() => setPreviewDatasetId(selectedDataset.id)}
-            className="text-sm text-primary hover:underline"
-          >
-            Preview ({selectedDataset.row_count} rows)
-          </button>
-        )}
-      </div>
+      <DatasetSelector selectedDatasetId={selectedDatasetId} onDatasetSelected={setSelectedDatasetId} />
 
       {/* Model Manager */}
       <ModelManager selectedModelIds={selectedModelIds} onModelsChange={setSelectedModelIds} />
-
-      {/* Dataset Preview Modal */}
-      {previewDataset && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-h-96 max-w-4xl shadow-lg flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">{previewDataset.name} Preview</h3>
-              <button
-                onClick={() => setPreviewDatasetId(null)}
-                className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
-                title="Close"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-auto">
-              <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-gray-50">
-                  <tr>
-                    {previewDataset.headers.map((h) => (
-                      <th
-                        key={h}
-                        className="px-4 py-2 text-left font-medium text-gray-700 border-b border-gray-200"
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {previewDataset.rows.map((row, idx) => (
-                    <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      {previewDataset.headers.map((h) => (
-                        <td key={h} className="px-4 py-2 border-b border-gray-200 text-gray-600">
-                          {row[h]}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="px-4 py-2 border-t border-gray-200 text-xs text-gray-500">
-              Showing {previewDataset.rows.length} of {previewDataset.row_count} rows
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
