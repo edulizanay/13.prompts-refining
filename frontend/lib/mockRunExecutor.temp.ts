@@ -31,17 +31,22 @@ export function generateMockCell(): Partial<Cell> {
   const isError = Math.random() < 0.05;
 
   if (isError) {
+    const errorMessages = [
+      'Rate limit exceeded',
+      'API timeout',
+      'Invalid request',
+      'Authentication failed',
+      'Service unavailable',
+    ];
     return {
       status: 'error' as const,
       output_raw: '',
       output_parsed: '',
-      tokens_in: Math.floor(Math.random() * 100),
-      tokens_out: Math.floor(Math.random() * 50),
-      cost: Math.random() * 0.01,
+      tokens_in: 0,
+      tokens_out: 0,
+      cost: 0,
       latency_ms: Math.floor(Math.random() * 3000) + 500,
-      error_message: ['Rate limit exceeded', 'API timeout', 'Invalid request'][
-        Math.floor(Math.random() * 3)
-      ],
+      error_message: errorMessages[Math.floor(Math.random() * errorMessages.length)],
     };
   }
 
