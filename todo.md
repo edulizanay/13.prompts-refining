@@ -11,15 +11,15 @@
 
 ### Foundation & Core Setup
 
-* [ ] **Prompt 1**: Foundation & Project Setup + State Management
-* [ ] **Prompt 2**: Editor Panel - Basic Prompt Editing
-* [ ] **Prompt 3**: Variable Detection & Dataset Selector
-* [ ] **Prompt 4**: Dataset Upload & Preview
-* [ ] **Prompt 5**: Grader Selector
+* [x] **Prompt 1**: Foundation & Project Setup + State Management
+* [x] **Prompt 2**: Editor Panel - Basic Prompt Editing
+* [x] **Prompt 3**: Variable Detection & Dataset Selector
+* [x] **Prompt 4**: Dataset Upload & Preview
+* [x] **Prompt 5**: Grader Selector
 
 ### Model & Run Management
 
-* [ ] **Prompt 6**: Model Selection
+* [x] **Prompt 6**: Model Selection
 * [ ] **Prompt 7**: Run Validation & Execution
 * [ ] **Prompt 8**: Results Grid Structure & Mock Execution
 
@@ -42,8 +42,9 @@
 
 ## Current Prompt
 
-**Active**: None (awaiting start)
-**Next**: Prompt 1 - Foundation & Project Setup + State Management
+**Active**: None (paused for review)
+**Just Completed**: Prompt 6 - Model Selection (+ DatasetSelector refactoring)
+**Next**: Prompt 7 - Run Validation & Execution
 
 ---
 
