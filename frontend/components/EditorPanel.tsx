@@ -228,79 +228,50 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
 
   return (
     <div className="space-y-6 h-full overflow-y-auto pb-8">
-      {/* Prompt Selector */}
-      <div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="p-2 rounded-md bg-transparent hover:bg-gray-100 transition-colors" aria-label="Prompt menu">
-              <MoreHorizontalIcon size={20} className="text-gray-600" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="start">
-            <DropdownMenuLabel className="text-xs uppercase text-gray-500">Create</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => setNewPromptDialog(true)}>
-              <PlusIcon size={16} className="mr-2" />
-              <span>New Prompt</span>
-            </DropdownMenuItem>
-
-            <DropdownMenuSeparator />
-
-            <DropdownMenuLabel className="text-xs uppercase text-gray-500">Prompts</DropdownMenuLabel>
-            {prompts.map((p) => (
-              <DropdownMenuItem key={p.id} onClick={() => setSelectedId(p.id)}>
-                <div className="flex flex-col gap-0.5">
-                  <span className="font-medium">{p.name}</span>
-                  <span className="text-xs text-gray-500">{p.type === 'generator' ? 'Generator' : 'Grader'}</span>
-                </div>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <Modal
-          isOpen={newPromptDialog}
-          onClose={() => setNewPromptDialog(false)}
-          size="small"
-          hasBackdropClose={true}
-          hasEscapeClose={true}
-          className="p-6 space-y-4"
+      {/* Prompt Modal */}
+      <Modal
+        isOpen={newPromptDialog}
+        onClose={() => setNewPromptDialog(false)}
+        size="small"
+        hasBackdropClose={true}
+        hasEscapeClose={true}
+        className="p-6 space-y-4"
+      >
+        <h3 className="text-lg font-semibold text-gray-900">Create New Prompt</h3>
+        <input
+          autoFocus
+          type="text"
+          placeholder="Prompt name"
+          value={newPromptName}
+          onChange={(e) => setNewPromptName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleCreatePrompt();
+          }}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+        />
+        <select
+          value={newPromptType}
+          onChange={(e) => setNewPromptType(e.target.value as 'generator' | 'grader')}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
         >
-          <h3 className="text-lg font-semibold text-gray-900">Create New Prompt</h3>
-          <input
-            autoFocus
-            type="text"
-            placeholder="Prompt name"
-            value={newPromptName}
-            onChange={(e) => setNewPromptName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleCreatePrompt();
-            }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-          />
-          <select
-            value={newPromptType}
-            onChange={(e) => setNewPromptType(e.target.value as 'generator' | 'grader')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+          <option value="generator">Generator</option>
+          <option value="grader">Grader</option>
+        </select>
+        <div className="flex gap-2 justify-end">
+          <button
+            onClick={() => setNewPromptDialog(false)}
+            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 text-sm font-medium"
           >
-            <option value="generator">Generator</option>
-            <option value="grader">Grader</option>
-          </select>
-          <div className="flex gap-2 justify-end">
-            <button
-              onClick={() => setNewPromptDialog(false)}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 text-sm font-medium"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleCreatePrompt}
-              className="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 text-sm font-medium"
-            >
-              Create
-            </button>
-          </div>
-        </Modal>
-      </div>
+            Cancel
+          </button>
+          <button
+            onClick={handleCreatePrompt}
+            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 text-sm font-medium"
+          >
+            Create
+          </button>
+        </div>
+      </Modal>
 
       {/* Prompt Header */}
       <div className="space-y-2">
@@ -330,6 +301,34 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
               {currentPrompt.name} <span className="text-lg text-gray-400">v{currentPrompt.version_counter}</span>
             </h2>
           )}
+
+          {/* Prompt Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="p-2 rounded-md bg-transparent hover:bg-gray-100 transition-colors" aria-label="Prompt menu">
+                <MoreHorizontalIcon size={20} className="text-gray-600" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end">
+              <DropdownMenuLabel className="text-xs uppercase text-gray-500">Create</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => setNewPromptDialog(true)}>
+                <PlusIcon size={16} className="mr-2" />
+                <span>New Prompt</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+
+              <DropdownMenuLabel className="text-xs uppercase text-gray-500">Prompts</DropdownMenuLabel>
+              {prompts.map((p) => (
+                <DropdownMenuItem key={p.id} onClick={() => setSelectedId(p.id)}>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-medium">{p.name}</span>
+                    <span className="text-xs text-gray-500">{p.type === 'generator' ? 'Generator' : 'Grader'}</span>
+                  </div>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -354,7 +353,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
             {(isRunning || activeRunId) ? (
               <>
                 <svg
-                  className="w-3.5 h-3.5 animate-spin"
+                  className="w-[19px] h-[19px] animate-spin"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
