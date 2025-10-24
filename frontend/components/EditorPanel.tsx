@@ -236,7 +236,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
                 {prompts.find(p => p.id === selectedId)?.name || 'Select prompt'}
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56">
+            <DropdownMenuContent className="w-56" align="start">
               {prompts.map((p) => (
                 <DropdownMenuItem key={p.id} onClick={() => setSelectedId(p.id)}>
                   <div>
@@ -343,7 +343,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
           <Button
             onClick={handleRun}
             disabled={(isRunning || activeRunId ? true : false) || !currentPrompt || selectedModelIds.length === 0}
-            variant="outline"
+            variant="default"
             size="sm"
             className="pr-2"
           >
@@ -362,6 +362,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
+                Run
               </>
             ) : (
               <>
@@ -402,10 +403,10 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="text-sm text-left text-gray-700 hover:text-primary cursor-pointer transition-colors p-0 border-0 bg-transparent">
-              {currentPrompt.expected_output === 'none' ? 'No parsing' : currentPrompt.expected_output === 'response' ? 'Extract <response> tags' : 'JSON'}
+              {currentPrompt.expected_output === 'none' ? 'No parsing' : currentPrompt.expected_output === 'response' ? 'Extract <response> tags' : 'JSON format'}
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56">
+          <DropdownMenuContent className="w-56" align="start">
             <DropdownMenuItem onClick={() => handleUpdateExpectedOutput('none')}>
               No parsing
             </DropdownMenuItem>
@@ -413,7 +414,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
               Extract &lt;response&gt; tags
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleUpdateExpectedOutput('json')}>
-              JSON
+              JSON format
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -427,7 +428,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
               {selectedGraderId ? prompts.find(p => p.id === selectedGraderId)?.name : 'No grader selected'}
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56">
+          <DropdownMenuContent className="w-56" align="start">
             <DropdownMenuItem onClick={() => handleGraderSelected(null)}>
               No grader selected
             </DropdownMenuItem>

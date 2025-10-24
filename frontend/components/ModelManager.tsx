@@ -153,7 +153,7 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
                       {selectedProvider}
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56">
+                  <DropdownMenuContent className="w-56" align="start">
                     {providers.map((p) => (
                       <DropdownMenuItem
                         key={p}
@@ -180,7 +180,7 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
                       {selectedModel}
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56">
+                  <DropdownMenuContent className="w-56" align="start">
                     {modelsForProvider.map((m) => (
                       <DropdownMenuItem key={m.model} onClick={() => setSelectedModel(m.model)}>
                         {m.model}
