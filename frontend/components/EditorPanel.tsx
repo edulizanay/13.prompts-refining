@@ -353,7 +353,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
             {(isRunning || activeRunId) ? (
               <>
                 <svg
-                  className="w-[19px] h-[19px] animate-spin"
+                  className="w-4 h-4 animate-spin flex-shrink-0"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -365,7 +365,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                <span className="text-xs">Loading</span>
+                <span>Loading</span>
               </>
             ) : (
               'Run'
