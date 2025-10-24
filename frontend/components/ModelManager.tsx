@@ -104,7 +104,7 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
         {selectedModels.map((model) => (
           <div
             key={model.id}
-            className="flex flex-col w-40 p-2 bg-white rounded-md border border-gray-200 hover:border-primary hover:shadow-sm transition-all cursor-pointer"
+            className="relative w-40 p-2 bg-white rounded-md border border-gray-200 hover:border-primary hover:shadow-sm transition-all cursor-pointer"
             onClick={() => setShowDialog(true)}
             title="Click to change model"
           >
@@ -115,9 +115,8 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
                 e.stopPropagation();
                 handleRemoveModel(model.id);
               }}
-              className="absolute text-gray-400 hover:text-red-600 font-bold"
+              className="absolute top-1 right-1 text-gray-400 hover:text-red-600 font-bold opacity-0 hover:opacity-100 transition-opacity"
               title="Remove model"
-              style={{ marginTop: '-24px', marginLeft: '152px' }}
             >
               ✕
             </button>

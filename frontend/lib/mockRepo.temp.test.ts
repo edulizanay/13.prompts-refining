@@ -219,29 +219,29 @@ describe('mockRepo.temp', () => {
 
   describe('Models', () => {
     it('creates and retrieves models', () => {
-      const model = createModel('OpenAI', 'gpt-4');
-      expect(model.provider).toBe('OpenAI');
-      expect(model.model).toBe('gpt-4');
+      const model = createModel('Cerebras Systems', 'gpt-oss-120b');
+      expect(model.provider).toBe('Cerebras Systems');
+      expect(model.model).toBe('gpt-oss-120b');
       expect(model.id).toBeDefined();
     });
 
     it('gets all models', () => {
-      createModel('OpenAI', 'gpt-4-turbo');
-      createModel('Anthropic', 'claude-3-sonnet');
+      createModel('Cerebras Systems', 'llama3.1-8b');
+      createModel('Groq Inc.', 'llama-3.3-70b-versatile');
       const models = getAllModels();
       expect(models.length).toBeGreaterThanOrEqual(2);
     });
 
     it('deletes models', () => {
-      const model = createModel('OpenAI', 'gpt-4');
+      const model = createModel('Cerebras Systems', 'llama-3.3-70b');
       const initial = getAllModels().length;
       deleteModel(model.id);
       expect(getAllModels().length).toBe(initial - 1);
     });
 
     it('generates unique model IDs', () => {
-      const m1 = createModel('OpenAI', 'gpt-4');
-      const m2 = createModel('OpenAI', 'gpt-4');
+      const m1 = createModel('Groq Inc.', 'openai/gpt-oss-120b');
+      const m2 = createModel('Groq Inc.', 'openai/gpt-oss-120b');
       expect(m1.id).not.toBe(m2.id);
     });
   });

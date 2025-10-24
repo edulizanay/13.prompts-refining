@@ -9,3 +9,5 @@ We keep all important docs in .agent folder and keep updating them, it's structu
 - README.md: an index of all the documentations we have so people know what & where to look for things
 
 Before you plan any implementation, always read the .agent/README first to get context
+
+When creating new components, dont add labels unless explicitly instructed to do so.
