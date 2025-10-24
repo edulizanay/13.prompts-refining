@@ -204,3 +204,8 @@ export function parseDatasetFile(text: string, fileName: string): ParseResult {
     throw new Error('Unsupported file format. Use CSV or JSON.');
   }
 }
+
+// Utility function for conditional class names
+export function cn(...classes: (string | undefined | null | false)[]): string {
+  return classes.filter(Boolean).join(' ');
+}

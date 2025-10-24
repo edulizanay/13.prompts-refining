@@ -1,0 +1,10 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "default",
+  "rsc": false,
+  "registry": "https://ui.shadcn.com/r",
+  "projectDir": ".",
+  "aliases": {
+    "@/components/ui": "./components/ui"
+  }
+}

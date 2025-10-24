@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useRef, useImperativeHandle, useCallback, forwardRef } from 'react';
 import { Prompt } from '@/lib/types';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { extractPlaceholders } from '@/lib/utils';
 import {
   getAllPrompts,
@@ -329,7 +330,6 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
 
       {/* Prompt Editor */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">Prompt</label>
         <textarea
           ref={textareaRef}
           value={currentPrompt.text}
@@ -388,27 +388,32 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
       {/* Grader Selector */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-700">Grader (Optional)</label>
-        <select
-          value={selectedGraderId || ''}
-          onChange={(e) => handleGraderSelected(e.target.value || null)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-        >
-          <option value="">None</option>
-          {prompts
-            .filter((p) => p.type === 'grader')
-            .map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-        </select>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm text-left bg-white hover:bg-gray-50">
+              {selectedGraderId ? prompts.find(p => p.id === selectedGraderId)?.name : 'None'}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-full">
+            <DropdownMenuItem onClick={() => handleGraderSelected(null)}>
+              None
+            </DropdownMenuItem>
+            {prompts
+              .filter((p) => p.type === 'grader')
+              .map((p) => (
+                <DropdownMenuItem key={p.id} onClick={() => handleGraderSelected(p.id)}>
+                  {p.name}
+                </DropdownMenuItem>
+              ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Dataset Selector */}
       <DatasetSelector selectedDatasetId={selectedDatasetId} onDatasetSelected={handleDatasetSelected} />
 
       {/* Run Button */}
-      <div className="mt-8 pt-6 border-t border-accent-dark">
+      <div className="mt-8">
         <button
           onClick={handleRun}
           disabled={(isRunning || activeRunId ? true : false) || !currentPrompt || selectedModelIds.length === 0}

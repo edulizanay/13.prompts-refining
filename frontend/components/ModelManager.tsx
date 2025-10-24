@@ -49,6 +49,20 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
     setMounted(true);
   }, []);
 
+  // Handle Esc key to close dialog
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showDialog) {
+        setShowDialog(false);
+      }
+    };
+
+    if (showDialog) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [showDialog]);
+
   // Sync selectedModelIds when models change
   useEffect(() => {
     if (mounted) {
@@ -84,42 +98,41 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
   const modelsForProvider = models.filter((m) => m.provider === selectedProvider);
 
   return (
-    <div className="space-y-3">
+    <div>
+      {/* Model cards - horizontal stack with fixed width */}
       <div className="flex items-center gap-2">
-        <button
-          onClick={() => setShowDialog(true)}
-          disabled={selectedModelIds.length >= MAX_MODELS}
-          className="text-xs px-2 py-1 bg-primary text-white rounded hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-        >
-          + Add Model
-        </button>
-      </div>
-
-      {/* Model cards display */}
-      <div className="grid grid-cols-1 gap-2">
         {selectedModels.map((model) => (
           <div
             key={model.id}
-            className="flex items-center justify-between p-3 bg-white rounded-md border border-gray-200 hover:border-primary hover:shadow-sm transition-all cursor-pointer"
+            className="flex flex-col w-40 p-2 bg-white rounded-md border border-gray-200 hover:border-primary hover:shadow-sm transition-all cursor-pointer"
             onClick={() => setShowDialog(true)}
             title="Click to change model"
           >
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900">{model.provider}</p>
-              <p className="text-xs text-gray-500">{model.model}</p>
-            </div>
+            <p className="text-xs font-medium text-gray-900 truncate">{model.provider}</p>
+            <p className="text-xs text-gray-500 truncate">{model.model}</p>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 handleRemoveModel(model.id);
               }}
-              className="text-gray-400 hover:text-red-600 font-bold text-lg leading-none"
+              className="absolute text-gray-400 hover:text-red-600 font-bold"
               title="Remove model"
+              style={{ marginTop: '-24px', marginLeft: '152px' }}
             >
               ✕
             </button>
           </div>
         ))}
+
+        {/* Plus button - subtle, to the right */}
+        <button
+          onClick={() => setShowDialog(true)}
+          disabled={selectedModelIds.length >= MAX_MODELS}
+          className="text-lg text-gray-400 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          title="Add model"
+        >
+          +
+        </button>
       </div>
 
       {/* Add model dialog */}
@@ -170,18 +183,13 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
             {/* Dialog buttons */}
             <div className="flex gap-2 mt-6">
               <button
-                onClick={() => setShowDialog(false)}
-                className="flex-1 px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-sm font-medium"
-              >
-                Cancel
-              </button>
-              <button
                 onClick={handleAddModel}
-                className="flex-1 px-3 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 text-sm font-medium"
+                className="w-full px-3 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 text-sm font-medium"
               >
                 Add
               </button>
             </div>
+            <p className="text-xs text-gray-500 mt-2 text-center">Press <kbd className="bg-gray-100 px-1 rounded text-xs">Esc</kbd> to cancel</p>
           </div>
         </div>
       )}
