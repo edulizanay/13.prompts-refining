@@ -20,7 +20,7 @@
 ### Model & Run Management
 
 * [x] **Prompt 6**: Model Selection
-* [ ] **Prompt 7**: Run Validation & Execution
+* [x] **Prompt 7**: Run Validation & Execution
 * [ ] **Prompt 8**: Results Grid Structure & Mock Execution
 
 ### Results Display
@@ -42,9 +42,9 @@
 
 ## Current Prompt
 
-**Active**: None (paused for review)
-**Just Completed**: Prompt 6 - Model Selection (+ DatasetSelector refactoring)
-**Next**: Prompt 7 - Run Validation & Execution
+**Active**: Prompt 8 - Results Grid Structure & Mock Execution
+**Just Completed**: Prompt 7 - Run Validation & Execution
+**Next**: Prompt 8 - Results Grid Structure & Mock Execution
 
 ---
 

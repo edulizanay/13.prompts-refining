@@ -4,10 +4,11 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import type { Prompt } from '@/lib/types';
-import { initializeSeedData, getUIState, setActiveRunId } from '@/lib/mockRepo.temp';
+import type { Prompt, Run, Dataset } from '@/lib/types';
+import { initializeSeedData, getUIState, setActiveRunId, getRunById, getDatasetById } from '@/lib/mockRepo.temp';
 import { EditorPanel } from '@/components/EditorPanel';
 import { ToastContainer } from '@/components/ToastContainer';
+import { ResultsGrid } from '@/components/ResultsGrid';
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
@@ -15,6 +16,8 @@ export default function Home() {
   const [selectedGraderId, setSelectedGraderId] = useState<string | null>(null);
   const [selectedModelIds, setSelectedModelIds] = useState<string[]>([]);
   const [activeRunId, setActiveRunIdState] = useState<string | null>(null);
+  const [currentRun, setCurrentRun] = useState<Run | null>(null);
+  const [currentDataset, setCurrentDataset] = useState<Dataset | null>(null);
 
   useEffect(() => {
     // Initialize seed data on first load
@@ -30,6 +33,23 @@ export default function Home() {
   // Update global UI state when activeRunId changes
   useEffect(() => {
     setActiveRunId(activeRunId);
+  }, [activeRunId]);
+
+  // Track current run and dataset
+  useEffect(() => {
+    if (activeRunId) {
+      const run = getRunById(activeRunId);
+      setCurrentRun(run || null);
+      if (run?.dataset_id) {
+        const dataset = getDatasetById(run.dataset_id);
+        setCurrentDataset(dataset || null);
+      } else {
+        setCurrentDataset(null);
+      }
+    } else {
+      setCurrentRun(null);
+      setCurrentDataset(null);
+    }
   }, [activeRunId]);
 
   const handlePromptSelected = useCallback((_prompt: Prompt) => {
@@ -61,7 +81,11 @@ export default function Home() {
       <div className="w-3/5 p-6 overflow-y-auto">
         <div className="space-y-4">
           <h1 className="text-3xl font-bold text-gray-900">Results</h1>
-          <p className="text-gray-500">Results grid coming soon...</p>
+          {currentRun ? (
+            <ResultsGrid run={currentRun} dataset={currentDataset} />
+          ) : (
+            <p className="text-gray-500">Run a prompt to see results here</p>
+          )}
         </div>
       </div>
 

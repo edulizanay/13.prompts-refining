@@ -207,8 +207,10 @@ export function EditorPanel({
       // Show success toast
       showSuccessToast('Run started');
 
-      // Execute run
-      await executeRun(run, dataset, () => {}, () => {
+      // Execute run - executeRun will trigger re-renders via page.tsx
+      await executeRun(run, dataset, () => {
+        // Cell update callback - can be used to trigger UI updates if needed
+      }, () => {
         setIsRunning(false);
         onActiveRunIdChange?.(null);
       });
