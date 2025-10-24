@@ -13,11 +13,12 @@ interface ResultsGridProps {
   run: Run;
   dataset: Dataset | null;
   metricView: 'grade' | 'tokens' | 'cost' | 'latency';
+  onMetricViewChange: (view: 'grade' | 'tokens' | 'cost' | 'latency') => void;
   showParsedOnly: boolean;
   activeRunId: string | null;
 }
 
-export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRunId }: ResultsGridProps) {
+export function ResultsGrid({ run, dataset, metricView, onMetricViewChange, showParsedOnly, activeRunId }: ResultsGridProps) {
   const [cells, setCells] = useState<Cell[]>([]);
   const [, setUpdateTrigger] = useState(0);
   const [expandedCell, setExpandedCell] = useState<Cell | null>(null);
@@ -48,8 +49,28 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
   };
 
   return (
-    <div className="overflow-x-auto border border-gray-200 rounded-lg">
-      <table className="w-full text-sm">
+    <div className="space-y-4">
+      {/* Metric Toggle Toolbar */}
+      <div className="flex gap-2 items-center bg-gray-50 p-3 rounded-lg border border-gray-200">
+        <span className="text-xs font-medium text-gray-600">View:</span>
+        {(['grade', 'tokens', 'cost', 'latency'] as const).map((view) => (
+          <button
+            key={view}
+            onClick={() => onMetricViewChange(view)}
+            className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+              metricView === view
+                ? 'bg-primary text-white'
+                : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
+            }`}
+          >
+            {view.charAt(0).toUpperCase() + view.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      {/* Results Table */}
+      <div className="overflow-x-auto border border-gray-200 rounded-lg">
+        <table className="w-full text-sm">
         {/* Header */}
         <thead>
           <tr className="bg-gray-50 border-b border-gray-200">
@@ -109,8 +130,19 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
               })}
             </tr>
           ))}
+
+          {/* Summary Row */}
+          <tr className="bg-accent-light border-t-2 border-gray-300 font-semibold">
+            <td className="px-4 py-2 text-gray-900 bg-gray-100">Summary (Average)</td>
+            {modelIds.map((modelId) => (
+              <td key={`summary-${modelId}`} className="px-4 py-2">
+                <SummaryCell cells={cells} modelId={modelId} metricView={metricView} />
+              </td>
+            ))}
+          </tr>
         </tbody>
       </table>
+        </div>
 
       {/* Expand Modal */}
       {expandedCell && (
@@ -421,4 +453,48 @@ function GraderBadge({ gradeValue, graderOutput }: GraderBadgeProps) {
       )}
     </div>
   );
+}
+
+/**
+ * Summary cell component - shows averages for a model column
+ */
+interface SummaryCellProps {
+  cells: Cell[];
+  modelId: string;
+  metricView: 'grade' | 'tokens' | 'cost' | 'latency';
+}
+
+function SummaryCell({ cells, modelId, metricView }: SummaryCellProps) {
+  // Filter cells for this model, excluding errors and malformed
+  const validCells = cells.filter(
+    (c) => c.model_id === modelId && c.status === 'ok'
+  );
+
+  if (validCells.length === 0) {
+    return <div className="text-xs text-gray-400">—</div>;
+  }
+
+  // Calculate averages
+  if (metricView === 'grade') {
+    const avg = validCells.reduce((sum, c) => sum + (c.graded_value ?? 0), 0) / validCells.length;
+    return <div className="text-xs font-medium text-gray-900">{formatGrade(avg)}</div>;
+  }
+
+  if (metricView === 'tokens') {
+    const avgIn = validCells.reduce((sum, c) => sum + c.tokens_in, 0) / validCells.length;
+    const avgOut = validCells.reduce((sum, c) => sum + c.tokens_out, 0) / validCells.length;
+    return <div className="text-xs font-medium text-gray-900">{formatTokens(Math.round(avgIn), Math.round(avgOut))}</div>;
+  }
+
+  if (metricView === 'cost') {
+    const avg = validCells.reduce((sum, c) => sum + c.cost, 0) / validCells.length;
+    return <div className="text-xs font-medium text-gray-900">{formatCost(avg)}</div>;
+  }
+
+  if (metricView === 'latency') {
+    const avg = validCells.reduce((sum, c) => sum + c.latency_ms, 0) / validCells.length;
+    return <div className="text-xs font-medium text-gray-900">{formatLatency(Math.round(avg))}</div>;
+  }
+
+  return <div className="text-xs text-gray-400">—</div>;
 }

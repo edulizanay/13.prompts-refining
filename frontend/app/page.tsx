@@ -17,7 +17,7 @@ export default function Home() {
   const [activeRunId, setActiveRunIdState] = useState<string | null>(null);
   const [currentRun, setCurrentRun] = useState<Run | null>(null);
   const [currentDataset, setCurrentDataset] = useState<Dataset | null>(null);
-  const [metricView] = useState<'grade' | 'tokens' | 'cost' | 'latency'>('grade');
+  const [metricView, setMetricView] = useState<'grade' | 'tokens' | 'cost' | 'latency'>('grade');
   const [showParsedOnly] = useState(false);
 
   useEffect(() => {
@@ -87,6 +87,7 @@ export default function Home() {
               run={currentRun}
               dataset={currentDataset}
               metricView={metricView}
+              onMetricViewChange={setMetricView}
               showParsedOnly={showParsedOnly}
               activeRunId={activeRunId}
             />
