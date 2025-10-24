@@ -4,6 +4,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useImperativeHandle, useCallback, forwardRef } from 'react';
+import { ArrowLeftIcon, ArrowRightIcon } from 'lucide-react';
 import { Prompt } from '@/lib/types';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
@@ -342,13 +343,13 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary font-mono text-sm resize-none min-h-[300px]"
         />
         {/* Run Button Overlay */}
-        <div className="absolute bottom-4 right-4 group">
+        <div className="absolute bottom-4 right-4">
           <Button
             onClick={handleRun}
             disabled={(isRunning || activeRunId ? true : false) || !currentPrompt || selectedModelIds.length === 0}
             variant="default"
             size="sm"
-            className="w-20"
+            className="w-24 h-9"
           >
             {isRunning || activeRunId ? (
               <>
@@ -368,18 +369,31 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
                 <span>Run</span>
               </>
             ) : (
-              <>
-                Run <Kbd>⏎</Kbd>
-              </>
+              'Run'
             )}
           </Button>
-          {/* Tooltip */}
-          <div className="absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-            <div className="bg-gray-900 text-white text-xs py-1 px-2 rounded shadow-lg">
-              Save Changes <kbd className="bg-gray-800 px-1.5 py-0.5 rounded text-xs ml-1">Ctrl+⏎</kbd>
-            </div>
-          </div>
         </div>
+      </div>
+
+      {/* Version Navigation Buttons */}
+      {/* TODO: Phase 2 - Version history backend integration */}
+      {/* These buttons will navigate through prompt versions once backend stores version snapshots */}
+      {/* Currently disabled since version history is not persisted */}
+      <div className="flex justify-end gap-2">
+        <button
+          disabled
+          className="p-2 rounded-md bg-transparent hover:bg-gray-100 transition-colors cursor-not-allowed opacity-50"
+          aria-label="Go to previous version"
+        >
+          <ArrowLeftIcon size={20} className="text-gray-600" />
+        </button>
+        <button
+          disabled
+          className="p-2 rounded-md bg-transparent hover:bg-gray-100 transition-colors cursor-not-allowed opacity-50"
+          aria-label="Go to next version"
+        >
+          <ArrowRightIcon size={20} className="text-gray-600" />
+        </button>
       </div>
 
       {/* Variables */}
