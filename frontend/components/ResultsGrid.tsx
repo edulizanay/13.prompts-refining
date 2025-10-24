@@ -307,10 +307,10 @@ function ResultCellView({ cell, showParsedOnly, metricView, onExpandClick, isAct
 interface CellExpandModalContentProps {
   cell: Cell;
   showParsedOnly: boolean;
-  onClose: () => void;
+  onClose?: () => void;
 }
 
-function CellExpandModalContent({ cell, showParsedOnly, onClose }: CellExpandModalContentProps) {
+function CellExpandModalContent({ cell, showParsedOnly }: CellExpandModalContentProps) {
   const isError = cell.status === 'error';
   const isMalformed = cell.status === 'malformed';
 
@@ -328,23 +328,6 @@ function CellExpandModalContent({ cell, showParsedOnly, onClose }: CellExpandMod
 
   return (
     <>
-      {/* Header */}
-      <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900">Cell Details</h2>
-          <p className="text-xs text-gray-500 mt-1">
-            {showParsedOnly ? 'Parsed Output' : 'Full Output'}
-          </p>
-        </div>
-        <button
-          onClick={onClose}
-          className="text-gray-500 hover:text-gray-700 text-xl font-bold"
-          aria-label="Close"
-        >
-          ×
-        </button>
-      </div>
-
       {/* Content */}
       <div className="p-6 flex-1 overflow-auto">
         <div
@@ -385,13 +368,8 @@ function CellExpandModalContent({ cell, showParsedOnly, onClose }: CellExpandMod
       </div>
 
       {/* Footer */}
-      <div className="p-6 border-t border-gray-200 bg-gray-50">
-        <button
-          onClick={onClose}
-          className="w-full px-4 py-2 bg-gray-200 text-gray-900 rounded-md font-medium hover:bg-gray-300 transition-colors"
-        >
-          Close
-        </button>
+      <div className="p-6 border-t border-gray-200 bg-white">
+        <p className="text-xs text-gray-500 text-center">Press <kbd className="bg-gray-100 px-1 rounded text-xs">Esc</kbd> to close</p>
       </div>
     </>
   );
