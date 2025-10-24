@@ -4,11 +4,10 @@
 'use client';
 
 import { useState, useEffect, useRef, useImperativeHandle, useCallback, forwardRef } from 'react';
-import { ArrowLeftIcon, ArrowRightIcon } from 'lucide-react';
+import { ArrowLeftIcon, ArrowRightIcon, MoreHorizontalIcon, PlusIcon } from 'lucide-react';
 import { Prompt } from '@/lib/types';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Kbd } from '@/components/ui/kbd';
 import { extractPlaceholders } from '@/lib/utils';
 import {
   getAllPrompts,
@@ -230,32 +229,33 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
   return (
     <div className="space-y-6 h-full overflow-y-auto pb-8">
       {/* Prompt Selector */}
-      <div className="space-y-2">
-        <div className="flex gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm text-left bg-white hover:bg-gray-50">
-                {prompts.find(p => p.id === selectedId)?.name || 'Select prompt'}
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="start">
-              {prompts.map((p) => (
-                <DropdownMenuItem key={p.id} onClick={() => setSelectedId(p.id)}>
-                  <div>
-                    <div className="font-medium">{p.name}</div>
-                    <div className="text-xs text-gray-500">{p.type === 'generator' ? 'Generator' : 'Grader'}</div>
-                  </div>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <button
-            onClick={() => setNewPromptDialog(true)}
-            className="px-3 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 text-sm font-medium"
-          >
-            New
-          </button>
-        </div>
+      <div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="p-2 rounded-md bg-transparent hover:bg-gray-100 transition-colors" aria-label="Prompt menu">
+              <MoreHorizontalIcon size={20} className="text-gray-600" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="start">
+            <DropdownMenuLabel className="text-xs uppercase text-gray-500">Create</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => setNewPromptDialog(true)}>
+              <PlusIcon size={16} className="mr-2" />
+              <span>New Prompt</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator />
+
+            <DropdownMenuLabel className="text-xs uppercase text-gray-500">Prompts</DropdownMenuLabel>
+            {prompts.map((p) => (
+              <DropdownMenuItem key={p.id} onClick={() => setSelectedId(p.id)}>
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-medium">{p.name}</span>
+                  <span className="text-xs text-gray-500">{p.type === 'generator' ? 'Generator' : 'Grader'}</span>
+                </div>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <Modal
           isOpen={newPromptDialog}
@@ -349,12 +349,12 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
             disabled={(isRunning || activeRunId ? true : false) || !currentPrompt || selectedModelIds.length === 0}
             variant="default"
             size="sm"
-            className="w-24 h-9"
+            className="w-[76px] h-9 flex items-center justify-center gap-1.5"
           >
-            {isRunning || activeRunId ? (
+            {(isRunning || activeRunId) ? (
               <>
                 <svg
-                  className="w-4 h-4 animate-spin"
+                  className="w-3.5 h-3.5 animate-spin"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -366,7 +366,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                <span>Run</span>
+                <span className="text-xs">Loading</span>
               </>
             ) : (
               'Run'
