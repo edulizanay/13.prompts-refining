@@ -23,6 +23,7 @@ import { validateRun } from '@/lib/utils';
 import { executeRun } from '@/lib/mockRunExecutor.temp';
 import { DatasetSelector } from './DatasetSelector';
 import { Modal } from '@/components/ui/modal';
+import { PromptEditor } from './PromptEditor';
 
 interface EditorPanelProps {
   onPromptSelected?: (prompt: Prompt) => void;
@@ -65,7 +66,6 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
   const [newPromptType, setNewPromptType] = useState<'generator' | 'grader'>('generator');
   const [isRunning, setIsRunning] = useState(false);
   const [errorDialog, setErrorDialog] = useState<string | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const textIsChangedRef = useRef(false);
 
   // Use prop values if provided, otherwise use local state
@@ -113,13 +113,6 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
     }
   }, [selectedId, onPromptSelected]);
 
-  // Auto-expand textarea
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-    }
-  }, [currentPrompt?.text]);
 
   const handleUpdateText = (text: string) => {
     if (!currentPrompt) return;
@@ -354,13 +347,11 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
       </div>
 
       {/* Prompt Editor */}
-      <div className="relative">
-        <textarea
-          ref={textareaRef}
+      <div className="relative px-0.5">
+        <PromptEditor
           value={currentPrompt.text}
-          onChange={(e) => handleUpdateText(e.target.value)}
+          onChange={handleUpdateText}
           placeholder={ONBOARDING_PLACEHOLDER}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary font-mono text-sm resize-none min-h-[300px]"
         />
         {/* Run Button Overlay */}
         <div className="absolute bottom-4 right-4">
