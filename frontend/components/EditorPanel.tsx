@@ -329,10 +329,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
 
       {/* Prompt Editor */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <label className="block text-sm font-medium text-gray-700">Prompt</label>
-          {textIsChangedRef.current && <span className="text-xs text-blue-500 font-medium">Saving...</span>}
-        </div>
+        <label className="block text-sm font-medium text-gray-700">Prompt</label>
         <textarea
           ref={textareaRef}
           value={currentPrompt.text}
@@ -382,7 +379,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
           </div>
         </div>
         {showExpectedOutputTooltip && (
-          <p className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-200">
+          <p className="text-xs text-gray-500">
             If set and parse fails, cell is marked <span className="font-medium">Malformed</span>.
           </p>
         )}
