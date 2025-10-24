@@ -16,6 +16,7 @@ export default function Home() {
   const [selectedGraderId, setSelectedGraderId] = useState<string | null>(null);
   const [selectedModelIds, setSelectedModelIds] = useState<string[]>([]);
   const [activeRunId, setActiveRunIdState] = useState<string | null>(null);
+  const [displayRunId, setDisplayRunId] = useState<string | null>(null);
   const [currentRun, setCurrentRun] = useState<Run | null>(null);
   const [currentDataset, setCurrentDataset] = useState<Dataset | null>(null);
   const [metricView, setMetricView] = useState<'grade' | 'tokens' | 'cost' | 'latency'>('grade');
@@ -29,6 +30,7 @@ export default function Home() {
     // Load UI state
     const uiState = getUIState();
     setActiveRunIdState(uiState.activeRunId);
+    setDisplayRunId(uiState.activeRunId);
 
     setMounted(true);
   }, []);
@@ -38,10 +40,18 @@ export default function Home() {
     setActiveRunId(activeRunId);
   }, [activeRunId]);
 
-  // Track current run and dataset
+  // Track current run and dataset - display the last run that was active
   useEffect(() => {
     if (activeRunId) {
-      const run = getRunById(activeRunId);
+      // When a new run starts, update display run
+      setDisplayRunId(activeRunId);
+    }
+  }, [activeRunId]);
+
+  // Update current run and dataset based on displayRunId (keeps showing results even after execution ends)
+  useEffect(() => {
+    if (displayRunId) {
+      const run = getRunById(displayRunId);
       setCurrentRun(run || null);
       if (run?.dataset_id) {
         const dataset = getDatasetById(run.dataset_id);
@@ -49,11 +59,8 @@ export default function Home() {
       } else {
         setCurrentDataset(null);
       }
-    } else {
-      setCurrentRun(null);
-      setCurrentDataset(null);
     }
-  }, [activeRunId]);
+  }, [displayRunId]);
 
   // Keyboard shortcut: Cmd+Enter (Mac) or Ctrl+Enter (Windows/Linux) to run
   useEffect(() => {
