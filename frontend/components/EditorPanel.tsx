@@ -372,16 +372,24 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
 
       {/* Expected Output */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">Expected Output</label>
-        <select
-          value={currentPrompt.expected_output}
-          onChange={(e) => handleUpdateExpectedOutput(e.target.value as 'none' | 'response' | 'json')}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-        >
-          <option value="none">None</option>
-          <option value="response">Response (&lt;response&gt; tags)</option>
-          <option value="json">JSON</option>
-        </select>
+        <div className="flex items-center justify-between">
+          <label className="block text-sm font-medium text-gray-700">Expected Output</label>
+          <div className="flex gap-2">
+            {(['none', 'response', 'json'] as const).map((option) => (
+              <button
+                key={option}
+                onClick={() => handleUpdateExpectedOutput(option)}
+                className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                  currentPrompt.expected_output === option
+                    ? 'bg-primary text-white'
+                    : 'bg-gray-100 text-gray-700 border border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                {option === 'none' ? 'None' : option === 'response' ? 'Response' : 'JSON'}
+              </button>
+            ))}
+          </div>
+        </div>
         <p className="text-xs text-gray-500">
           If set and parse fails, cell is marked <span className="font-medium">Malformed</span> and fails in Grade view.
         </p>
@@ -389,21 +397,36 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
 
       {/* Grader Selector */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">Grader (Optional)</label>
-        <select
-          value={selectedGraderId || ''}
-          onChange={(e) => handleGraderSelected(e.target.value || null)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-        >
-          <option value="">No grader</option>
-          {prompts
-            .filter((p) => p.type === 'grader')
-            .map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-        </select>
+        <div className="flex items-center justify-between">
+          <label className="block text-sm font-medium text-gray-700">Grader (Optional)</label>
+          <div className="flex gap-2 flex-wrap justify-end">
+            <button
+              onClick={() => handleGraderSelected(null)}
+              className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                !selectedGraderId
+                  ? 'bg-primary text-white'
+                  : 'bg-gray-100 text-gray-700 border border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              None
+            </button>
+            {prompts
+              .filter((p) => p.type === 'grader')
+              .map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => handleGraderSelected(p.id)}
+                  className={`px-3 py-1 text-xs font-medium rounded transition-colors whitespace-nowrap ${
+                    selectedGraderId === p.id
+                      ? 'bg-primary text-white'
+                      : 'bg-gray-100 text-gray-700 border border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  {p.name}
+                </button>
+              ))}
+          </div>
+        </div>
         <p className="text-xs text-gray-500">
           Grader runs after each generation and may use {`{{output}}`} placeholder.
         </p>
