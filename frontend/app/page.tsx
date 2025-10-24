@@ -83,7 +83,7 @@ export default function Home() {
     <div className="p-6 h-screen w-full bg-background flex flex-col">
       <div className="flex h-full gap-6">
         {/* Left Panel: Editor (40%) */}
-        <div className="w-2/5 border-r border-accent-dark overflow-y-auto px-2">
+        <div className="w-2/5 border-r border-accent-dark overflow-y-auto px-6">
           <EditorPanel
             ref={editorPanelRef}
             onPromptSelected={handlePromptSelected}
@@ -98,7 +98,7 @@ export default function Home() {
         </div>
 
         {/* Right Panel: Results (60%) */}
-        <div className="w-3/5 overflow-y-auto flex flex-col px-2">
+        <div className="w-3/5 overflow-y-auto flex flex-col px-6">
           {/* Model Manager */}
           <div className="mb-4">
             <ModelManager selectedModelIds={selectedModelIds} onModelsChange={setSelectedModelIds} />
