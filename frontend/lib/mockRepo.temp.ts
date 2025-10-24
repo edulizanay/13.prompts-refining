@@ -283,6 +283,27 @@ export function deleteModel(id: string): void {
   localStorage.setItem(STORAGE_KEYS.MODELS, JSON.stringify(models));
 }
 
+export function getModelByProviderAndName(provider: string, model: string): Model | null {
+  const models = getAllModels();
+  return models.find((m) => m.provider === provider && m.model === model) || null;
+}
+
+export function deduplicateModels(): void {
+  const models = getAllModels();
+  const seen = new Map<string, Model>();
+
+  // Keep first occurrence of each provider+model combo
+  models.forEach((model) => {
+    const key = `${model.provider}|${model.model}`;
+    if (!seen.has(key)) {
+      seen.set(key, model);
+    }
+  });
+
+  const deduplicated = Array.from(seen.values());
+  localStorage.setItem(STORAGE_KEYS.MODELS, JSON.stringify(deduplicated));
+}
+
 // SEED DATA
 
 export function initializeSeedData(): void {

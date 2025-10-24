@@ -8,6 +8,7 @@ import { ArrowLeftIcon, ArrowRightIcon, MoreHorizontalIcon, PlusIcon } from 'luc
 import { Prompt } from '@/lib/types';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { extractPlaceholders } from '@/lib/utils';
 import {
   getAllPrompts,
@@ -345,27 +346,14 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
         <div className="absolute bottom-4 right-4">
           <Button
             onClick={handleRun}
-            disabled={(isRunning || activeRunId ? true : false) || !currentPrompt || selectedModelIds.length === 0}
-            variant="default"
+            disabled={isRunning || !!activeRunId || !currentPrompt || selectedModelIds.length === 0}
             size="sm"
-            className="w-[76px] h-9 flex items-center justify-center gap-1.5"
+            className="min-w-[80px] min-h-[32px]"
           >
             {(isRunning || activeRunId) ? (
               <>
-                <svg
-                  className="w-4 h-4 animate-spin flex-shrink-0"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-                <span>Loading</span>
+                <Spinner />
+                Loading
               </>
             ) : (
               'Run'
@@ -378,22 +366,24 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
       {/* TODO: Phase 2 - Version history backend integration */}
       {/* These buttons will navigate through prompt versions once backend stores version snapshots */}
       {/* Currently disabled since version history is not persisted */}
-      <div className="flex justify-end gap-2">
-        <button
-          disabled
-          className="p-2 rounded-md bg-transparent hover:bg-gray-100 transition-colors cursor-not-allowed opacity-50"
-          aria-label="Go to previous version"
-        >
-          <ArrowLeftIcon size={20} className="text-gray-600" />
-        </button>
-        <button
-          disabled
-          className="p-2 rounded-md bg-transparent hover:bg-gray-100 transition-colors cursor-not-allowed opacity-50"
-          aria-label="Go to next version"
-        >
-          <ArrowRightIcon size={20} className="text-gray-600" />
-        </button>
-      </div>
+      {currentPrompt.version_counter > 1 && (
+        <div className="flex justify-end gap-2 -mt-14 relative z-10">
+          <button
+            disabled
+            className="p-2 rounded-md bg-transparent hover:bg-gray-100 transition-colors cursor-not-allowed opacity-50"
+            aria-label="Go to previous version"
+          >
+            <ArrowLeftIcon size={20} className="text-gray-600" />
+          </button>
+          <button
+            disabled
+            className="p-2 rounded-md bg-transparent hover:bg-gray-100 transition-colors cursor-not-allowed opacity-50"
+            aria-label="Go to next version"
+          >
+            <ArrowRightIcon size={20} className="text-gray-600" />
+          </button>
+        </div>
+      )}
 
       {/* Variables */}
       {placeholders.length > 0 && (

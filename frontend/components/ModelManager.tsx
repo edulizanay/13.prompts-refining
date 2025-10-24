@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { Model } from '@/lib/types';
-import { getAllModels, createModel, deleteModel } from '@/lib/mockRepo.temp';
+import { getAllModels, createModel, deleteModel, getModelByProviderAndName } from '@/lib/mockRepo.temp';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Modal } from '@/components/ui/modal';
 
@@ -69,9 +69,13 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
       return;
     }
 
-    const newModel = createModel(selectedProvider, selectedModel);
+    // Check if this model already exists
+    let model = getModelByProviderAndName(selectedProvider, selectedModel);
+    if (!model) {
+      model = createModel(selectedProvider, selectedModel);
+    }
     setModels(getAllModels());
-    onModelsChange([...selectedModelIds, newModel.id]);
+    onModelsChange([...selectedModelIds, model.id]);
     setShowDialog(false);
   };
 

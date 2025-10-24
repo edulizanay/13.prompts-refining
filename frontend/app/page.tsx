@@ -5,7 +5,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import type { Prompt, Run, Dataset } from '@/lib/types';
-import { initializeSeedData, getUIState, setActiveRunId, getRunById, getDatasetById } from '@/lib/mockRepo.temp';
+import { initializeSeedData, getUIState, setActiveRunId, getRunById, getDatasetById, deduplicateModels } from '@/lib/mockRepo.temp';
 import { EditorPanel } from '@/components/EditorPanel';
 import { ResultsGrid } from '@/components/ResultsGrid';
 import { ModelManager } from '@/components/ModelManager';
@@ -29,6 +29,9 @@ export default function Home() {
   useEffect(() => {
     // Initialize seed data on first load
     initializeSeedData();
+
+    // Clean up any duplicate models
+    deduplicateModels();
 
     // Load UI state
     const uiState = getUIState();
