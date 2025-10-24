@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 import '../styles/globals.css';
 
 export const metadata: Metadata = {
-  title: 'Prompt Refinement UI',
+  title: 'Promptster',
   description: 'Test and compare LLM prompts across different models',
 };
 
