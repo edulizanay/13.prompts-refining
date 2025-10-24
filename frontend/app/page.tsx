@@ -7,7 +7,6 @@ import { useEffect, useState, useCallback } from 'react';
 import type { Prompt, Run, Dataset } from '@/lib/types';
 import { initializeSeedData, getUIState, setActiveRunId, getRunById, getDatasetById } from '@/lib/mockRepo.temp';
 import { EditorPanel } from '@/components/EditorPanel';
-import { ToastContainer } from '@/components/ToastContainer';
 import { ResultsGrid } from '@/components/ResultsGrid';
 
 export default function Home() {
@@ -88,8 +87,6 @@ export default function Home() {
           )}
         </div>
       </div>
-
-      <ToastContainer />
     </div>
   );
 }

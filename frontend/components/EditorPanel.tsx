@@ -15,12 +15,10 @@ import {
   getDatasetById,
   createRun,
 } from '@/lib/mockRepo.temp';
-import { validateRun } from '@/lib/validateRun';
-import { showErrorToast, showSuccessToast } from '@/lib/toast';
+import { validateRun } from '@/lib/utils';
 import { executeRun } from '@/lib/mockRunExecutor.temp';
 import { ModelManager } from './ModelManager';
 import { DatasetSelector } from './DatasetSelector';
-import { RunButton } from './RunButton';
 
 interface EditorPanelProps {
   onPromptSelected?: (prompt: Prompt) => void;
@@ -176,13 +174,14 @@ export function EditorPanel({
     const errors = validateRun(currentPrompt, dataset, grader);
 
     if (errors.length > 0) {
-      errors.forEach((error) => showErrorToast(error));
+      // Show first error in alert for now (will be replaced with toast in UX polish)
+      alert(errors[0]);
       return;
     }
 
     // Check if models selected
     if (selectedModelIds.length === 0) {
-      showErrorToast('Please select at least one model');
+      alert('Please select at least one model');
       return;
     }
 
@@ -194,7 +193,7 @@ export function EditorPanel({
         version_counter: currentPrompt.version_counter + 1,
       });
       if (!updatedPrompt) {
-        showErrorToast('Failed to update prompt');
+        alert('Failed to update prompt');
         return;
       }
       setCurrentPrompt(updatedPrompt);
@@ -204,19 +203,16 @@ export function EditorPanel({
       const run = createRun(currentPrompt.id, versionLabel, selectedModelIds, selectedDatasetId, selectedGraderId);
       onActiveRunIdChange?.(run.id);
 
-      // Show success toast
-      showSuccessToast('Run started');
-
-      // Execute run - executeRun will trigger re-renders via page.tsx
+      // Execute run
       await executeRun(run, dataset, () => {
-        // Cell update callback - can be used to trigger UI updates if needed
+        // Cell update callback
       }, () => {
         setIsRunning(false);
         onActiveRunIdChange?.(null);
       });
     } catch (error) {
       console.error('Run error:', error);
-      showErrorToast('Run failed');
+      alert('Run failed');
       setIsRunning(false);
       onActiveRunIdChange?.(null);
     }
@@ -432,11 +428,36 @@ export function EditorPanel({
 
       {/* Run Button */}
       <div className="mt-8 pt-6 border-t border-accent-dark">
-        <RunButton
-          isLoading={isRunning || (activeRunId ? true : false)}
-          disabled={!currentPrompt || selectedModelIds.length === 0}
+        <button
           onClick={handleRun}
-        />
+          disabled={(isRunning || activeRunId ? true : false) || !currentPrompt || selectedModelIds.length === 0}
+          className={`w-full px-4 py-2 rounded-md font-medium transition-all flex items-center justify-center gap-2 ${
+            isRunning || activeRunId || !currentPrompt || selectedModelIds.length === 0
+              ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+              : 'bg-primary text-white hover:bg-opacity-90 active:bg-opacity-80'
+          }`}
+        >
+          {isRunning || activeRunId ? (
+            <>
+              <svg
+                className="w-4 h-4 animate-spin"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              <span>Loading…</span>
+            </>
+          ) : (
+            <span>Run</span>
+          )}
+        </button>
       </div>
     </div>
   );

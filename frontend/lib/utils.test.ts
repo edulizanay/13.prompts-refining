@@ -1,5 +1,5 @@
-// ABOUTME: Unit tests for utility functions (extraction, parsing, formatting)
-// ABOUTME: Tests placeholder detection, output parsing, grade normalization, and formatting
+// ABOUTME: Unit tests for utility functions (extraction, parsing, formatting, validation)
+// ABOUTME: Tests placeholder detection, output parsing, grade normalization, formatting, and run validation
 
 import {
   extractPlaceholders,
@@ -11,7 +11,9 @@ import {
   formatCost,
   formatLatency,
   truncate,
+  validateRun,
 } from './utils';
+import { Prompt, Dataset } from './types';
 
 describe('utils', () => {
   describe('extractPlaceholders', () => {
@@ -165,6 +167,70 @@ describe('utils', () => {
       const result = truncate(text, 20);
       expect(result).toBe('This is a very long ...');
       expect(result.length).toBe(23);
+    });
+  });
+
+  describe('validateRun', () => {
+    const mockPrompt = (text: string, type: 'generator' | 'grader' = 'generator'): Prompt => ({
+      id: 'test-prompt',
+      name: 'Test Prompt',
+      type,
+      text,
+      expected_output: 'none',
+      version_counter: 1,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+
+    const mockDataset = (headers: string[]): Dataset => ({
+      id: 'test-dataset',
+      name: 'Test Dataset',
+      source: 'upload',
+      headers,
+      row_count: 10,
+      rows: [],
+    });
+
+    it('allows valid generator with matching dataset columns', () => {
+      const prompt = mockPrompt('Hello {{name}}, you are {{age}} years old');
+      const dataset = mockDataset(['name', 'age', 'email']);
+      const errors = validateRun(prompt, dataset, null);
+      expect(errors).toEqual([]);
+    });
+
+    it('blocks generator with missing dataset columns', () => {
+      const prompt = mockPrompt('Hello {{name}}, you are {{age}} years old');
+      const dataset = mockDataset(['name', 'email']);
+      const errors = validateRun(prompt, dataset, null);
+      expect(errors).toContain('Generator is missing dataset columns: "age"');
+    });
+
+    it('blocks generator with variables when no dataset selected', () => {
+      const prompt = mockPrompt('Hello {{name}}');
+      const errors = validateRun(prompt, null, null);
+      expect(errors).toContain('Generator requires variables but no dataset selected');
+    });
+
+    it('allows generator with no variables and no dataset', () => {
+      const prompt = mockPrompt('Hello world, no variables here');
+      const errors = validateRun(prompt, null, null);
+      expect(errors).toEqual([]);
+    });
+
+    it('allows grader with {{output}} placeholder', () => {
+      const generator = mockPrompt('Response: {{text}}');
+      const grader = mockPrompt('Grade: {{output}}', 'grader');
+      const dataset = mockDataset(['text']);
+      const errors = validateRun(generator, dataset, grader);
+      expect(errors).toEqual([]);
+    });
+
+    it('blocks grader with missing variables', () => {
+      const generator = mockPrompt('Response: {{text}}');
+      const grader = mockPrompt('Grade: {{output}} and {{missing_var}}', 'grader');
+      const dataset = mockDataset(['text']);
+      const errors = validateRun(generator, dataset, grader);
+      expect(errors).toContain('Grader is missing variables: "missing_var"');
     });
   });
 });
