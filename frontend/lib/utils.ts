@@ -66,6 +66,44 @@ export function gradeToColor(grade: number | null): string {
   return 'red';
 }
 
+export interface GradeStyles {
+  bgClass: string;
+  textClass: string;
+  borderClass: string;
+  iconClass: string;
+}
+
+export function gradeToStyles(grade: number | null): GradeStyles {
+  const colorClass = gradeToColor(grade);
+  const styleMap: Record<string, GradeStyles> = {
+    green: {
+      bgClass: 'bg-green-50',
+      textClass: 'text-green-700',
+      borderClass: 'border-green-200',
+      iconClass: 'text-green-700',
+    },
+    yellow: {
+      bgClass: 'bg-amber-50',
+      textClass: 'text-amber-700',
+      borderClass: 'border-amber-200',
+      iconClass: 'text-amber-700',
+    },
+    red: {
+      bgClass: 'bg-red-50',
+      textClass: 'text-red-700',
+      borderClass: 'border-red-200',
+      iconClass: 'text-red-700',
+    },
+    gray: {
+      bgClass: 'bg-gradient-to-br from-purple-200 to-purple-300',
+      textClass: 'text-purple-900',
+      borderClass: 'border-purple-300',
+      iconClass: 'text-purple-900',
+    },
+  };
+  return styleMap[colorClass];
+}
+
 export function formatGrade(grade: number): string {
   return `${Math.round(grade * 100)}%`;
 }

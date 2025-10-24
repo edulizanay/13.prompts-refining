@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import { Run, Cell, Dataset } from '@/lib/types';
-import { truncate, parseOutput, formatGrade, formatTokens, formatCost, formatLatency, gradeToColor } from '@/lib/utils';
+import { truncate, parseOutput, formatGrade, formatTokens, formatCost, formatLatency, gradeToStyles } from '@/lib/utils';
 import { getCellsByRunId, getModelById, upsertCell } from '@/lib/mockRepo.temp';
 import { generateMockCell } from '@/lib/mockRunExecutor.temp';
 import { Modal } from '@/components/ui/modal';
@@ -210,6 +210,12 @@ function ResultCellView({ cell, showParsedOnly, metricView, onExpandClick, isAct
     onRerun(updatedCell);
   };
 
+  const handleManualGradeToggle = (newGrade: number | null) => {
+    const updatedCell: Cell = { ...cell, manual_grade: newGrade };
+    upsertCell(updatedCell);
+    onRerun(updatedCell);
+  };
+
   if (isLoading) {
     return (
       <div className="p-3 bg-gray-50 rounded-md border border-gray-200 min-h-[100px] flex items-center justify-center">
@@ -276,6 +282,8 @@ function ResultCellView({ cell, showParsedOnly, metricView, onExpandClick, isAct
             onToggleGrader={() => setShowGraderOverlay(!showGraderOverlay)}
             isError={isError}
             isMalformed={isMalformed}
+            hasGrader={cell.graded_value !== null && cell.grader_parsed !== null}
+            onManualGradeToggle={handleManualGradeToggle}
           />
         </div>
       )}
@@ -386,12 +394,28 @@ interface MetricBadgeProps {
   onToggleGrader: () => void;
   isError: boolean;
   isMalformed: boolean;
+  hasGrader: boolean;
+  onManualGradeToggle: (newGrade: number | null) => void;
 }
 
-function MetricBadge({ cell, metricView, showGraderOverlay, onToggleGrader, isError, isMalformed }: MetricBadgeProps) {
-  const hasGrader = cell.graded_value !== null && cell.grader_parsed;
+function MetricBadge({ cell, metricView, showGraderOverlay, onToggleGrader, isError, isMalformed, hasGrader, onManualGradeToggle }: MetricBadgeProps) {
   const isGradeView = metricView === 'grade';
   const isClickable = isGradeView && hasGrader;
+  const showManualToggle = isGradeView && !hasGrader && !isError && !isMalformed;
+
+  // Determine which grade to display (manual takes precedence)
+  const displayGrade = cell.manual_grade !== null ? cell.manual_grade : cell.graded_value;
+
+  // Handle manual grade toggle
+  const handleManualToggle = () => {
+    if (cell.manual_grade === null) {
+      onManualGradeToggle(1.0); // null -> green (100%)
+    } else if (cell.manual_grade === 1.0) {
+      onManualGradeToggle(0.0); // green -> red (0%)
+    } else {
+      onManualGradeToggle(1.0); // red -> green (100%)
+    }
+  };
 
   // Determine badge content based on metric view
   let badgeContent: string;
@@ -401,15 +425,9 @@ function MetricBadge({ cell, metricView, showGraderOverlay, onToggleGrader, isEr
     badgeContent = '—';
     badgeColor = 'bg-gradient-to-br from-purple-200 to-purple-300 text-purple-900';
   } else if (isGradeView) {
-    badgeContent = cell.graded_value !== null ? formatGrade(cell.graded_value) : '—';
-    const colorClass = cell.graded_value !== null ? gradeToColor(cell.graded_value) : 'gray';
-    const gradientMap: Record<string, string> = {
-      green: 'bg-green-50 text-green-700 border border-green-200',
-      yellow: 'bg-amber-50 text-amber-700 border border-amber-200',
-      red: 'bg-red-50 text-red-700 border border-red-200',
-      gray: 'bg-gradient-to-br from-purple-200 to-purple-300 text-purple-900',
-    };
-    badgeColor = gradientMap[colorClass];
+    badgeContent = displayGrade !== null ? formatGrade(displayGrade) : '—';
+    const styles = gradeToStyles(displayGrade);
+    badgeColor = `${styles.bgClass} ${styles.textClass} border ${styles.borderClass}`;
   } else if (metricView === 'tokens') {
     badgeContent = formatTokens(cell.tokens_in, cell.tokens_out);
   } else if (metricView === 'cost') {
@@ -422,6 +440,33 @@ function MetricBadge({ cell, metricView, showGraderOverlay, onToggleGrader, isEr
 
   const commonClasses = `min-w-[63px] px-2 py-1.5 rounded-lg font-semibold text-[0.6125rem] leading-tight transition-all shadow-md text-center ${badgeColor}`;
   const clickableClasses = isClickable ? 'hover:shadow-lg cursor-pointer' : '';
+
+  // Manual toggle with thumbs icon
+  if (showManualToggle) {
+    const styles = gradeToStyles(displayGrade);
+    const isGreen = displayGrade === 1.0;
+    const isRed = displayGrade === 0.0;
+    const isNeutral = displayGrade === null;
+
+    return (
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          handleManualToggle();
+        }}
+        className={`flex items-center justify-center gap-1 min-w-[63px] px-2 py-1.5 rounded-lg font-semibold text-[0.6125rem] leading-tight transition-all shadow-md border ${
+          isNeutral
+            ? 'bg-gradient-to-br from-purple-200 to-purple-300 text-purple-900 border-purple-300 hover:from-purple-300 hover:to-purple-400'
+            : `${styles.bgClass} ${styles.textClass} border ${styles.borderClass}`
+        }`}
+        title="Click to toggle pass/fail"
+      >
+        {isGreen && <span>👍</span>}
+        {isRed && <span>👎</span>}
+        {isNeutral && <span className="opacity-40">👍</span>}
+      </button>
+    );
+  }
 
   if (isClickable) {
     return (
@@ -466,7 +511,11 @@ function SummaryCell({ cells, modelId, metricView }: SummaryCellProps) {
 
   // Calculate averages
   if (metricView === 'grade') {
-    const avg = validCells.reduce((sum, c) => sum + (c.graded_value ?? 0), 0) / validCells.length;
+    const avg = validCells.reduce((sum, c) => {
+      // Use manual_grade if set, else fall back to graded_value
+      const grade = c.manual_grade !== null ? c.manual_grade : (c.graded_value ?? 0);
+      return sum + grade;
+    }, 0) / validCells.length;
     return <div className="text-xs font-medium text-gray-900">{formatGrade(avg)}</div>;
   }
 

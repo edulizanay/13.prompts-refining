@@ -57,6 +57,7 @@ export interface Cell {
   graded_value: number | null; // 0..1
   grader_full_raw: string | null;
   grader_parsed: string | null;
+  manual_grade: number | null; // 0..1, user-set manual toggle (0=fail, 1=pass)
 }
 
 export interface UIState {

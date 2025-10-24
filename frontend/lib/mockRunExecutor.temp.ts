@@ -103,6 +103,7 @@ export async function executeRun(
             graded_value: null,
             grader_full_raw: null,
             grader_parsed: null,
+            manual_grade: null,
           };
 
           upsertCell(cell);

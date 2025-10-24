@@ -183,6 +183,7 @@ describe('mockRepo.temp', () => {
         graded_value: null,
         grader_full_raw: null,
         grader_parsed: null,
+        manual_grade: null,
       };
       upsertCell(cell);
       const retrieved = getCell('run1', 'model1', 0);
