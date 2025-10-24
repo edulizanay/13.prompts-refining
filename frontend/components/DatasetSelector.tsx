@@ -4,9 +4,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Dataset } from '@/lib/types';
 import { parseDatasetFile } from '@/lib/utils';
-import { getAllDatasets, createDataset, getDatasetById } from '@/lib/mockRepo.temp';
+import { createDataset, getDatasetById } from '@/lib/mockRepo.temp';
 
 interface DatasetSelectorProps {
   selectedDatasetId: string | null;
@@ -14,17 +13,14 @@ interface DatasetSelectorProps {
 }
 
 export function DatasetSelector({ selectedDatasetId, onDatasetSelected }: DatasetSelectorProps) {
-  const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [mounted, setMounted] = useState(false);
   const [uploadLoading, setUploadLoading] = useState(false);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [previewDatasetId, setPreviewDatasetId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load datasets on mount
+  // Load on mount
   useEffect(() => {
-    const allDatasets = getAllDatasets();
-    setDatasets(allDatasets);
     setMounted(true);
   }, []);
 
@@ -42,7 +38,6 @@ export function DatasetSelector({ selectedDatasetId, onDatasetSelected }: Datase
       const text = await file.text();
       const result = parseDatasetFile(text, file.name);
       const dataset = createDataset(file.name.replace(/\.[^.]+$/, ''), result.headers, result.rows);
-      setDatasets(getAllDatasets());
       onDatasetSelected(dataset.id);
       showToast('success', `Dataset "${dataset.name}" uploaded successfully`);
       // Reset file input
@@ -64,46 +59,50 @@ export function DatasetSelector({ selectedDatasetId, onDatasetSelected }: Datase
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">Dataset</label>
-      <select
-        value={selectedDatasetId || ''}
-        onChange={(e) => onDatasetSelected(e.target.value || null)}
-        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-      >
-        <option value="">No dataset</option>
-        {datasets.map((d) => (
-          <option key={d.id} value={d.id}>
-            {d.name} ({d.row_count} rows)
-          </option>
-        ))}
-      </select>
+      <div className="flex items-center justify-between">
+        <label className="block text-sm font-medium text-gray-700">Dataset</label>
+        <div className="flex gap-2 items-center">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,.json"
+            onChange={handleFileSelect}
+            disabled={uploadLoading}
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadLoading}
+            className="px-3 py-1 text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200 rounded hover:border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+          >
+            {uploadLoading ? (
+              <>
+                <span className="inline-block w-3 h-3 border-2 border-gray-700 border-t-transparent rounded-full animate-spin"></span>
+              </>
+            ) : (
+              '+ Upload'
+            )}
+          </button>
+          {selectedDataset && (
+            <button
+              onClick={() => setPreviewDatasetId(selectedDataset.id)}
+              className="px-3 py-1 text-xs font-medium text-primary hover:bg-primary hover:bg-opacity-10 rounded"
+            >
+              Preview
+            </button>
+          )}
+        </div>
+      </div>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".csv,.json"
-        onChange={handleFileSelect}
-        disabled={uploadLoading}
-        className="hidden"
-      />
-      <button
-        onClick={() => fileInputRef.current?.click()}
-        disabled={uploadLoading}
-        className="w-full px-3 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-      >
-        {uploadLoading ? (
-          <>
-            <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-            Uploading...
-          </>
-        ) : (
-          'Upload Dataset (CSV/JSON)'
-        )}
-      </button>
+      {selectedDataset && (
+        <div className="text-xs text-gray-500">
+          Selected: <span className="font-medium">{selectedDataset.name}</span> ({selectedDataset.row_count} rows)
+        </div>
+      )}
 
       {toast && (
         <div
-          className={`p-3 rounded-md text-sm ${
+          className={`p-2 rounded-md text-xs ${
             toast.type === 'success'
               ? 'bg-green-100 text-green-700'
               : 'bg-red-100 text-red-700'
@@ -111,15 +110,6 @@ export function DatasetSelector({ selectedDatasetId, onDatasetSelected }: Datase
         >
           {toast.message}
         </div>
-      )}
-
-      {selectedDataset && (
-        <button
-          onClick={() => setPreviewDatasetId(selectedDataset.id)}
-          className="text-sm text-primary hover:underline"
-        >
-          Preview ({selectedDataset.row_count} rows)
-        </button>
       )}
 
       {/* Dataset Preview Modal */}
