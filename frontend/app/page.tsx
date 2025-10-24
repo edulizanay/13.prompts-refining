@@ -87,9 +87,7 @@ export default function Home() {
 
   const handleDividerMouseDown = () => {
     isDraggingRef.current = true;
-  };
 
-  useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDraggingRef.current || !containerRef.current) return;
 
@@ -105,18 +103,13 @@ export default function Home() {
 
     const handleMouseUp = () => {
       isDraggingRef.current = false;
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
     };
 
-    if (isDraggingRef.current) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, []);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
 
   if (!mounted) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
