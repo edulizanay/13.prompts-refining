@@ -37,6 +37,8 @@ A two-panel app to edit/version **prompts** (generators/graders), select **model
    └─ README.md                       # This file (context + structure + where logic lies)
 ```
 
+If you plan to deviate from this design, ask explicit permission to Edu
+
 > **Keyboard shortcut:** Bind **Cmd+Enter** directly in `frontend/app/page.tsx` (keep it compact).
 
 ---
