@@ -18,6 +18,7 @@ import {
   updatePrompt,
   renamePrompt,
   getAllDatasets,
+  createDataset,
 } from '@/lib/mockRepo.temp';
 
 interface EditorPanelProps {
@@ -95,6 +96,16 @@ export function EditorPanel({ onPromptSelected }: EditorPanelProps) {
     }
   };
 
+  const handleUploadDataset = (
+    name: string,
+    headers: string[],
+    rows: Record<string, string>[]
+  ) => {
+    const newDataset = createDataset(name, headers, rows);
+    setDatasets(getAllDatasets());
+    setSelectedDatasetId(newDataset.id);
+  };
+
   if (!mounted || !currentPrompt) {
     return <div className="text-gray-500">Loading editor...</div>;
   }
@@ -111,7 +122,12 @@ export function EditorPanel({ onPromptSelected }: EditorPanelProps) {
 
       <ExpectedOutputSelector value={currentPrompt.expected_output} onChange={handleUpdateExpectedOutput} />
 
-      <DatasetSelector datasets={datasets} selectedId={selectedDatasetId} onSelect={setSelectedDatasetId} />
+      <DatasetSelector
+        datasets={datasets}
+        selectedId={selectedDatasetId}
+        onSelect={setSelectedDatasetId}
+        onUpload={handleUploadDataset}
+      />
     </div>
   );
 }
