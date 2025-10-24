@@ -1,0 +1,17 @@
+{
+  "name": "prompt-refinement-ui",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "cd frontend && npm run start",
+    "test": "cd frontend && npm run test",
+    "test:watch": "cd frontend && npm run test:watch",
+    "install-all": "npm install && cd frontend && npm install"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ]
+}
