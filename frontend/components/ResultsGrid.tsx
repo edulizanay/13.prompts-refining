@@ -6,16 +6,18 @@
 import { useEffect, useState } from 'react';
 import { Run, Cell, Dataset } from '@/lib/types';
 import { truncate, parseOutput, formatGrade, formatTokens, formatCost, formatLatency } from '@/lib/utils';
-import { getCellsByRunId, getModelById } from '@/lib/mockRepo.temp';
+import { getCellsByRunId, getModelById, upsertCell } from '@/lib/mockRepo.temp';
+import { generateMockCell } from '@/lib/mockRunExecutor.temp';
 
 interface ResultsGridProps {
   run: Run;
   dataset: Dataset | null;
   metricView: 'grade' | 'tokens' | 'cost' | 'latency';
   showParsedOnly: boolean;
+  activeRunId: string | null;
 }
 
-export function ResultsGrid({ run, dataset, metricView, showParsedOnly }: ResultsGridProps) {
+export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRunId }: ResultsGridProps) {
   const [cells, setCells] = useState<Cell[]>([]);
   const [, setUpdateTrigger] = useState(0);
   const [expandedCell, setExpandedCell] = useState<Cell | null>(null);
@@ -86,6 +88,18 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly }: Result
                         showParsedOnly={showParsedOnly}
                         metricView={metricView}
                         onExpandClick={setExpandedCell}
+                        isActiveRun={activeRunId === run.id}
+                        onRerun={(updatedCell) => {
+                          setCells((prevCells) =>
+                            prevCells.map((c) =>
+                              c.run_id === updatedCell.run_id &&
+                              c.model_id === updatedCell.model_id &&
+                              c.row_index === updatedCell.row_index
+                                ? updatedCell
+                                : c
+                            )
+                          );
+                        }}
                       />
                     ) : (
                       <div className="text-xs text-gray-400">No data</div>
@@ -118,17 +132,37 @@ interface ResultCellViewProps {
   showParsedOnly: boolean;
   metricView: 'grade' | 'tokens' | 'cost' | 'latency';
   onExpandClick: (cell: Cell) => void;
+  isActiveRun: boolean;
+  onRerun: (cell: Cell) => void;
 }
 
-function ResultCellView({ cell, showParsedOnly, metricView, onExpandClick }: ResultCellViewProps) {
+function ResultCellView({ cell, showParsedOnly, metricView, onExpandClick, isActiveRun, onRerun }: ResultCellViewProps) {
+  const [isHovering, setIsHovering] = useState(false);
   const isLoading = cell.status === 'running' || cell.status === 'idle';
   const isError = cell.status === 'error';
   const isMalformed = cell.status === 'malformed';
+  const isTerminal = cell.status === 'ok' || cell.status === 'error' || cell.status === 'malformed';
 
   // Get the prompt's expected output type - we need to check the run's prompt
   // For now, we'll default to 'none' and parse accordingly
   const expectedOutput = 'none'; // This will be enhanced in later prompts
   const parsed = parseOutput(cell.output_raw, expectedOutput);
+
+  const handleRerun = async () => {
+    // Mark as running
+    const rerunningCell: Cell = { ...cell, status: 'running' as const };
+    upsertCell(rerunningCell);
+    onRerun(rerunningCell);
+
+    // Wait a bit for visual feedback
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Generate new mock data
+    const mockData = generateMockCell();
+    const updatedCell: Cell = { ...cell, ...mockData };
+    upsertCell(updatedCell);
+    onRerun(updatedCell);
+  };
 
   if (isLoading) {
     return (
@@ -171,55 +205,79 @@ function ResultCellView({ cell, showParsedOnly, metricView, onExpandClick }: Res
 
   return (
     <div
-      className={`p-3 rounded-md border min-h-[100px] overflow-hidden cursor-pointer hover:shadow-md transition-shadow ${
-        isError
-          ? 'bg-red-50 border-red-200'
-          : isMalformed
-            ? 'bg-yellow-50 border-yellow-200'
-            : 'bg-white border-gray-200'
-      }`}
-      onClick={() => onExpandClick(cell)}
+      className="relative"
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
     >
-      <div className="space-y-2">
-        {/* Status badge */}
-        <div className="flex items-center gap-2">
-          {isError && (
-            <>
-              <svg className="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-              <span className="text-xs font-medium text-red-700">Error</span>
-            </>
-          )}
-          {isMalformed && (
-            <>
-              <svg className="w-4 h-4 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-              <span className="text-xs font-medium text-yellow-700">Malformed</span>
-            </>
-          )}
-          {!isError && !isMalformed && (
-            <>
-              <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <span className="text-xs font-medium text-green-700">OK</span>
-            </>
-          )}
-        </div>
+      <div
+        className={`p-3 rounded-md border min-h-[100px] overflow-hidden cursor-pointer hover:shadow-md transition-shadow ${
+          isError
+            ? 'bg-red-50 border-red-200'
+            : isMalformed
+              ? 'bg-yellow-50 border-yellow-200'
+              : 'bg-white border-gray-200'
+        }`}
+        onClick={() => onExpandClick(cell)}
+      >
+        <div className="space-y-2">
+          {/* Status badge */}
+          <div className="flex items-center gap-2">
+            {isError && (
+              <>
+                <svg className="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+                <span className="text-xs font-medium text-red-700">Error</span>
+              </>
+            )}
+            {isMalformed && (
+              <>
+                <svg className="w-4 h-4 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <span className="text-xs font-medium text-yellow-700">Malformed</span>
+              </>
+            )}
+            {!isError && !isMalformed && (
+              <>
+                <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span className="text-xs font-medium text-green-700">OK</span>
+              </>
+            )}
+          </div>
 
-        {/* Output text */}
-        <div className="text-xs text-gray-700 font-mono break-words whitespace-pre-wrap">
-          {truncatedText}
-        </div>
+          {/* Output text */}
+          <div className="text-xs text-gray-700 font-mono break-words whitespace-pre-wrap">
+            {truncatedText}
+          </div>
 
-        {/* Metric badge */}
-        <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-          <span className="text-xs text-gray-500">Click to expand</span>
-          <span className="text-xs font-medium text-accent">{getMetricBadgeText()}</span>
+          {/* Metric badge */}
+          <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+            <span className="text-xs text-gray-500">Click to expand</span>
+            <span className="text-xs font-medium text-accent">{getMetricBadgeText()}</span>
+          </div>
         </div>
       </div>
+
+      {/* Hover Overlay */}
+      {isHovering && isActiveRun && isTerminal && (
+        <div className="absolute inset-0 bg-black/10 rounded-md flex items-start justify-end p-2 pointer-events-none">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRerun();
+            }}
+            className="pointer-events-auto p-2 bg-white rounded-md shadow-md hover:bg-gray-50 transition-colors"
+            title="Re-run this cell"
+          >
+            <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

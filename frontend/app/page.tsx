@@ -88,6 +88,7 @@ export default function Home() {
               dataset={currentDataset}
               metricView={metricView}
               showParsedOnly={showParsedOnly}
+              activeRunId={activeRunId}
             />
           ) : (
             <p className="text-gray-500">Run a prompt to see results here</p>
