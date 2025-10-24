@@ -21,7 +21,10 @@ export default function Home() {
   const [currentDataset, setCurrentDataset] = useState<Dataset | null>(null);
   const [metricView, setMetricView] = useState<'grade' | 'tokens' | 'cost' | 'latency'>('grade');
   const [showParsedOnly] = useState(false);
+  const [leftPanelWidth, setLeftPanelWidth] = useState(40);
   const editorPanelRef = useRef<{ triggerRun: () => Promise<void> }>(null);
+  const isDraggingRef = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Initialize seed data on first load
@@ -82,15 +85,48 @@ export default function Home() {
     // Prompt selection is handled internally by EditorPanel
   }, []);
 
+  const handleDividerMouseDown = () => {
+    isDraggingRef.current = true;
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDraggingRef.current || !containerRef.current) return;
+
+      const container = containerRef.current;
+      const containerRect = container.getBoundingClientRect();
+      const newWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
+
+      // Constrain width between 25% and 75%
+      if (newWidth >= 25 && newWidth <= 75) {
+        setLeftPanelWidth(newWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      isDraggingRef.current = false;
+    };
+
+    if (isDraggingRef.current) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, []);
+
   if (!mounted) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
   return (
     <div className="p-6 h-screen w-full bg-background flex flex-col">
-      <div className="flex h-full gap-6 p-6">
-        {/* Left Panel: Editor (40%) */}
-        <div className="w-2/5 border-r border-accent-dark overflow-y-auto px-6">
+      <div ref={containerRef} className="flex h-full gap-6 p-6">
+        {/* Left Panel: Editor (resizable) */}
+        <div style={{ width: `${leftPanelWidth}%` }} className="overflow-y-auto px-6 transition-none">
           <EditorPanel
             ref={editorPanelRef}
             onPromptSelected={handlePromptSelected}
@@ -104,8 +140,15 @@ export default function Home() {
           />
         </div>
 
-        {/* Right Panel: Results (60%) */}
-        <div className="w-3/5 overflow-y-auto flex flex-col px-6">
+        {/* Resizable Divider */}
+        <div
+          onMouseDown={handleDividerMouseDown}
+          className="w-1 bg-gray-300 hover:bg-primary cursor-col-resize transition-colors flex-shrink-0"
+          title="Drag to resize panels"
+        />
+
+        {/* Right Panel: Results (resizable) */}
+        <div style={{ width: `${100 - leftPanelWidth}%` }} className="overflow-y-auto flex flex-col px-6 transition-none">
           {/* Model Manager */}
           <div className="mb-4">
             <ModelManager selectedModelIds={selectedModelIds} onModelsChange={setSelectedModelIds} />

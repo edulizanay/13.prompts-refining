@@ -135,7 +135,7 @@ export function ResultsGrid({ run, dataset, metricView, onMetricViewChange, show
 
           {/* Summary Row */}
           <tr className="bg-accent-light border-t-2 border-gray-300 font-semibold">
-            <td className="px-4 py-2 text-gray-900 bg-gray-100">Summary (Average)</td>
+            <td className="px-4 py-2 text-gray-900 bg-gray-100">Average</td>
             {modelIds.map((modelId) => (
               <td key={`summary-${modelId}`} className="px-4 py-2">
                 <SummaryCell cells={cells} modelId={modelId} metricView={metricView} />
@@ -260,12 +260,16 @@ function ResultCellView({ cell, showParsedOnly, metricView, onExpandClick, isAct
       </div>
 
       {/* Badges Overlay */}
-      <div className="absolute top-2 right-2 flex items-center gap-1 pointer-events-none">
-        {cell.graded_value !== null && (
-          <GraderBadge gradeValue={cell.graded_value} graderOutput={cell.grader_parsed || ''} />
-        )}
+      <div className="absolute top-2 right-2">
         <span className="text-xs font-medium text-accent">{getMetricBadgeText()}</span>
       </div>
+
+      {/* Grader Badge - Bottom Right */}
+      {cell.graded_value !== null && (
+        <div className="absolute bottom-2 right-2 pointer-events-auto">
+          <GraderBadge gradeValue={cell.graded_value} graderOutput={cell.grader_parsed || ''} />
+        </div>
+      )}
 
       {/* Hover Overlay */}
       {isHovering && isActiveRun && isTerminal && !isHistoricalView && (
@@ -387,7 +391,7 @@ function CellExpandModal({ cell, showParsedOnly, onClose }: CellExpandModalProps
 }
 
 /**
- * Grader badge component
+ * Grader badge component - gradient background with grade value inside
  */
 interface GraderBadgeProps {
   gradeValue: number;
@@ -397,27 +401,28 @@ interface GraderBadgeProps {
 function GraderBadge({ gradeValue, graderOutput }: GraderBadgeProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const colorClass = gradeToColor(gradeValue);
-  const colorMap: Record<string, string> = {
-    green: 'bg-green-100 text-green-700 border-green-200',
-    yellow: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-    red: 'bg-red-100 text-red-700 border-red-200',
-    gray: 'bg-gray-100 text-gray-700 border-gray-200',
+
+  const gradientMap: Record<string, string> = {
+    green: 'bg-gradient-to-br from-green-400 to-green-600',
+    yellow: 'bg-gradient-to-br from-yellow-400 to-yellow-600',
+    red: 'bg-gradient-to-br from-red-400 to-red-600',
+    gray: 'bg-gradient-to-br from-gray-400 to-gray-600',
   };
 
   return (
     <div className="relative">
       <button
-        className={`px-2 py-1 rounded text-xs font-medium border transition-all ${colorMap[colorClass]}`}
+        className={`px-3 py-2 rounded font-semibold text-white text-sm transition-all shadow-md hover:shadow-lg ${gradientMap[colorClass]}`}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
         title={`Grade: ${formatGrade(gradeValue)}`}
       >
-        ✓
+        {formatGrade(gradeValue)}
       </button>
       {showTooltip && (
-        <div className="absolute -top-12 right-0 bg-gray-900 text-white px-2 py-1 rounded text-xs whitespace-nowrap z-10 pointer-events-none">
-          {graderOutput.substring(0, 30)}
-          {graderOutput.length > 30 ? '...' : ''}
+        <div className="absolute bottom-full right-0 mb-2 bg-gray-900 text-white px-2 py-1 rounded text-xs whitespace-nowrap z-10 pointer-events-none">
+          {graderOutput.substring(0, 50)}
+          {graderOutput.length > 50 ? '...' : ''}
         </div>
       )}
     </div>
