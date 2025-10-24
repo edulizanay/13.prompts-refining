@@ -5,7 +5,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Dataset } from '@/lib/types';
-import { parseDatasetFile } from '@/lib/csvParser';
+import { parseDatasetFile } from '@/lib/utils';
 import { getAllDatasets, createDataset, getDatasetById } from '@/lib/mockRepo.temp';
 
 interface DatasetSelectorProps {
