@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { Model } from '@/lib/types';
 import { getAllModels, createModel, deleteModel } from '@/lib/mockRepo.temp';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Modal } from '@/components/ui/modal';
 
 interface ModelManagerProps {
   selectedModelIds: string[];
@@ -50,19 +51,7 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
     setMounted(true);
   }, []);
 
-  // Handle Esc key to close dialog
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && showDialog) {
-        setShowDialog(false);
-      }
-    };
-
-    if (showDialog) {
-      document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
-    }
-  }, [showDialog]);
+  // Modal component handles Escape key closing
 
   // Sync selectedModelIds when models change
   useEffect(() => {
@@ -138,72 +127,75 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
       </div>
 
       {/* Add model dialog */}
-      {showDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full mx-4">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Add Model</h3>
+      <Modal
+        isOpen={showDialog}
+        onClose={() => setShowDialog(false)}
+        size="small"
+        hasBackdropClose={true}
+        hasEscapeClose={true}
+        className="p-6"
+      >
+        <h3 className="text-lg font-bold text-gray-900 mb-4">Add Model</h3>
 
-            <div className="space-y-4">
-              {/* Provider selector */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Provider</label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm text-left bg-white hover:bg-gray-50">
-                      {selectedProvider}
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="start">
-                    {providers.map((p) => (
-                      <DropdownMenuItem
-                        key={p}
-                        onClick={() => {
-                          setSelectedProvider(p);
-                          // Reset model to first of new provider
-                          const first = models.find((m) => m.provider === p);
-                          if (first) setSelectedModel(first.model);
-                        }}
-                      >
-                        {p}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+        <div className="space-y-4">
+          {/* Provider selector */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Provider</label>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm text-left bg-white hover:bg-gray-50">
+                  {selectedProvider}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="start">
+                {providers.map((p) => (
+                  <DropdownMenuItem
+                    key={p}
+                    onClick={() => {
+                      setSelectedProvider(p);
+                      // Reset model to first of new provider
+                      const first = models.find((m) => m.provider === p);
+                      if (first) setSelectedModel(first.model);
+                    }}
+                  >
+                    {p}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
-              {/* Model selector */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Model</label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm text-left bg-white hover:bg-gray-50">
-                      {selectedModel}
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="start">
-                    {modelsForProvider.map((m) => (
-                      <DropdownMenuItem key={m.model} onClick={() => setSelectedModel(m.model)}>
-                        {m.model}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-
-            {/* Dialog buttons */}
-            <div className="flex gap-2 mt-6">
-              <button
-                onClick={handleAddModel}
-                className="w-full px-3 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 text-sm font-medium"
-              >
-                Add
-              </button>
-            </div>
-            <p className="text-xs text-gray-500 mt-2 text-center">Press <kbd className="bg-gray-100 px-1 rounded text-xs">Esc</kbd> to cancel</p>
+          {/* Model selector */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Model</label>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm text-left bg-white hover:bg-gray-50">
+                  {selectedModel}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="start">
+                {modelsForProvider.map((m) => (
+                  <DropdownMenuItem key={m.model} onClick={() => setSelectedModel(m.model)}>
+                    {m.model}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
-      )}
+
+        {/* Dialog buttons */}
+        <div className="flex gap-2 mt-6">
+          <button
+            onClick={handleAddModel}
+            className="w-full px-3 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 text-sm font-medium"
+          >
+            Add
+          </button>
+        </div>
+        <p className="text-xs text-gray-500 mt-2 text-center">Press <kbd className="bg-gray-100 px-1 rounded text-xs">Esc</kbd> to cancel</p>
+      </Modal>
     </div>
   );
 }

@@ -21,6 +21,7 @@ import {
 import { validateRun } from '@/lib/utils';
 import { executeRun } from '@/lib/mockRunExecutor.temp';
 import { DatasetSelector } from './DatasetSelector';
+import { Modal } from '@/components/ui/modal';
 
 interface EditorPanelProps {
   onPromptSelected?: (prompt: Prompt) => void;
@@ -255,47 +256,49 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
           </button>
         </div>
 
-        {newPromptDialog && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-96 shadow-lg space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900">Create New Prompt</h3>
-              <input
-                autoFocus
-                type="text"
-                placeholder="Prompt name"
-                value={newPromptName}
-                onChange={(e) => setNewPromptName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleCreatePrompt();
-                  if (e.key === 'Escape') setNewPromptDialog(false);
-                }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-              />
-              <select
-                value={newPromptType}
-                onChange={(e) => setNewPromptType(e.target.value as 'generator' | 'grader')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-              >
-                <option value="generator">Generator</option>
-                <option value="grader">Grader</option>
-              </select>
-              <div className="flex gap-2 justify-end">
-                <button
-                  onClick={() => setNewPromptDialog(false)}
-                  className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 text-sm font-medium"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCreatePrompt}
-                  className="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 text-sm font-medium"
-                >
-                  Create
-                </button>
-              </div>
-            </div>
+        <Modal
+          isOpen={newPromptDialog}
+          onClose={() => setNewPromptDialog(false)}
+          size="small"
+          hasBackdropClose={true}
+          hasEscapeClose={true}
+          className="p-6 space-y-4"
+        >
+          <h3 className="text-lg font-semibold text-gray-900">Create New Prompt</h3>
+          <input
+            autoFocus
+            type="text"
+            placeholder="Prompt name"
+            value={newPromptName}
+            onChange={(e) => setNewPromptName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleCreatePrompt();
+            }}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+          />
+          <select
+            value={newPromptType}
+            onChange={(e) => setNewPromptType(e.target.value as 'generator' | 'grader')}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+          >
+            <option value="generator">Generator</option>
+            <option value="grader">Grader</option>
+          </select>
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={() => setNewPromptDialog(false)}
+              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 text-sm font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleCreatePrompt}
+              className="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 text-sm font-medium"
+            >
+              Create
+            </button>
           </div>
-        )}
+        </Modal>
       </div>
 
       {/* Prompt Header */}
