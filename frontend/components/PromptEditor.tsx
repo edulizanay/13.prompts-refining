@@ -187,6 +187,10 @@ export function PromptEditor({ value, onChange, placeholder }: PromptEditorProps
     '.cm-foldGutter': {
       backgroundColor: '#fafafa',
     },
+    // Hide fold placeholder ([...])
+    '.cm-foldPlaceholder': {
+      display: 'none',
+    },
   });
 
   // Extensions for line numbers, syntax highlighting, folding, and custom placeholder
