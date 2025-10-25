@@ -77,7 +77,7 @@ export function gradeToStyles(grade: number | null): GradeStyles {
   const colorClass = gradeToColor(grade);
   const styleMap: Record<string, GradeStyles> = {
     green: {
-      bgClass: 'bg-green-50',
+      bgClass: 'bg-green-100',
       textClass: 'text-green-700',
       borderClass: 'border-green-200',
       iconClass: 'text-green-700',
@@ -98,7 +98,7 @@ export function gradeToStyles(grade: number | null): GradeStyles {
       bgClass: 'bg-gradient-to-br from-purple-200 to-purple-300',
       textClass: 'text-purple-900',
       borderClass: 'border-purple-300',
-      iconClass: 'text-purple-900',
+      iconClass: 'text-purple-1000',
     },
   };
   return styleMap[colorClass];
@@ -117,11 +117,12 @@ export function formatTokens(tokenIn: number, tokenOut: number): string {
 }
 
 export function formatCost(cost: number): string {
-  return `$${cost.toFixed(3)}`;
+  return `$${cost.toFixed(4)}`;
 }
 
 export function formatLatency(ms: number): string {
-  return `${ms}ms`;
+  if (ms < 1000) return `${ms}ms`;
+  return `${(ms / 1000).toFixed(1)}s`;
 }
 
 export function truncate(text: string, maxLength: number = 200): string {

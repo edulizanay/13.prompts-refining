@@ -4,7 +4,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useImperativeHandle, useCallback, forwardRef } from 'react';
-import { ArrowLeftIcon, ArrowRightIcon, MoreHorizontalIcon, PlusIcon } from 'lucide-react';
+import { ArrowLeftIcon, ArrowRightIcon, MoreHorizontalIcon, PlusIcon, EyeIcon, EyeClosedIcon } from 'lucide-react';
 import { Prompt } from '@/lib/types';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
@@ -34,6 +34,8 @@ interface EditorPanelProps {
   selectedModelIds?: string[];
   activeRunId?: string | null;
   onActiveRunIdChange?: (runId: string | null) => void;
+  onToggleCompactMode?: () => void;
+  isCompactMode?: boolean;
 }
 
 const ONBOARDING_PLACEHOLDER = `Write your prompt here. Use {{variables}} for dynamic inputs.
@@ -52,6 +54,8 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
     selectedModelIds: propModelIds,
     activeRunId: propActiveRunId,
     onActiveRunIdChange,
+    onToggleCompactMode,
+    isCompactMode = false,
   }, ref) {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [selectedId, setSelectedId] = useState<string>('');
@@ -373,28 +377,44 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
         </div>
       </div>
 
-      {/* Version Navigation Buttons */}
-      {/* TODO: Phase 2 - Version history backend integration */}
-      {/* These buttons will navigate through prompt versions once backend stores version snapshots */}
-      {/* Currently disabled since version history is not persisted */}
-      {currentPrompt.version_counter > 1 && (
-        <div className="flex justify-end gap-2 -mt-14 relative z-10">
-          <button
-            disabled
-            className="p-2 rounded-md bg-transparent hover:bg-gray-100 transition-colors cursor-not-allowed opacity-50"
-            aria-label="Go to previous version"
-          >
-            <ArrowLeftIcon size={20} className="text-gray-600" />
-          </button>
-          <button
-            disabled
-            className="p-2 rounded-md bg-transparent hover:bg-gray-100 transition-colors cursor-not-allowed opacity-50"
-            aria-label="Go to next version"
-          >
-            <ArrowRightIcon size={20} className="text-gray-600" />
-          </button>
-        </div>
-      )}
+      {/* Toggle Compact Mode Button & Version Navigation */}
+      <div className="flex justify-between items-center">
+        <button
+          onClick={onToggleCompactMode}
+          className="p-2 rounded-md bg-transparent hover:bg-gray-100 transition-colors flex items-center gap-2"
+          aria-label={isCompactMode ? 'Expand to show results' : 'Collapse to focus mode'}
+          title={isCompactMode ? 'Expand to show results' : 'Collapse to focus mode'}
+        >
+          {isCompactMode ? (
+            <EyeIcon size={20} className="text-gray-600" />
+          ) : (
+            <EyeClosedIcon size={20} className="text-gray-600" />
+          )}
+        </button>
+
+        {/* Version Navigation Buttons */}
+        {/* TODO: Phase 2 - Version history backend integration */}
+        {/* These buttons will navigate through prompt versions once backend stores version snapshots */}
+        {/* Currently disabled since version history is not persisted */}
+        {currentPrompt.version_counter > 1 && (
+          <div className="flex gap-2">
+            <button
+              disabled
+              className="p-2 rounded-md bg-transparent hover:bg-gray-100 transition-colors cursor-not-allowed opacity-50"
+              aria-label="Go to previous version"
+            >
+              <ArrowLeftIcon size={20} className="text-gray-600" />
+            </button>
+            <button
+              disabled
+              className="p-2 rounded-md bg-transparent hover:bg-gray-100 transition-colors cursor-not-allowed opacity-50"
+              aria-label="Go to next version"
+            >
+              <ArrowRightIcon size={20} className="text-gray-600" />
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Variables */}
       {placeholders.length > 0 && (

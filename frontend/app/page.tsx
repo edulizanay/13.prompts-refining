@@ -21,10 +21,8 @@ export default function Home() {
   const [currentDataset, setCurrentDataset] = useState<Dataset | null>(null);
   const [metricView, setMetricView] = useState<'grade' | 'tokens' | 'cost' | 'latency'>('grade');
   const [showParsedOnly] = useState(false);
-  const [leftPanelWidth, setLeftPanelWidth] = useState(40);
+  const [isCompactMode, setIsCompactMode] = useState(false);
   const editorPanelRef = useRef<{ triggerRun: () => Promise<void> }>(null);
-  const isDraggingRef = useRef(false);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Initialize seed data on first load
@@ -37,6 +35,12 @@ export default function Home() {
     const uiState = getUIState();
     setActiveRunIdState(uiState.activeRunId);
     setDisplayRunId(uiState.activeRunId);
+
+    // Load compact mode preference from localStorage
+    const savedCompactMode = localStorage.getItem('isCompactMode');
+    if (savedCompactMode !== null) {
+      setIsCompactMode(savedCompactMode === 'true');
+    }
 
     setMounted(true);
   }, []);
@@ -88,30 +92,10 @@ export default function Home() {
     // Prompt selection is handled internally by EditorPanel
   }, []);
 
-  const handleDividerMouseDown = () => {
-    isDraggingRef.current = true;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isDraggingRef.current || !containerRef.current) return;
-
-      const container = containerRef.current;
-      const containerRect = container.getBoundingClientRect();
-      const newWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
-
-      // Constrain width between 25% and 75%
-      if (newWidth >= 25 && newWidth <= 75) {
-        setLeftPanelWidth(newWidth);
-      }
-    };
-
-    const handleMouseUp = () => {
-      isDraggingRef.current = false;
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+  const toggleCompactMode = () => {
+    const newMode = !isCompactMode;
+    setIsCompactMode(newMode);
+    localStorage.setItem('isCompactMode', String(newMode));
   };
 
   if (!mounted) {
@@ -120,9 +104,12 @@ export default function Home() {
 
   return (
     <div className="p-6 h-screen w-full bg-background flex flex-col">
-      <div ref={containerRef} className="flex h-full gap-6 p-6">
-        {/* Left Panel: Editor (resizable) */}
-        <div style={{ width: `${leftPanelWidth}%` }} className="overflow-y-auto px-6 transition-none">
+      <div className="flex h-full gap-6 p-6">
+        {/* Left Panel: Editor */}
+        <div
+          style={{ width: isCompactMode ? '100%' : '40%' }}
+          className="overflow-y-auto px-6 transition-all duration-300 ease-in-out"
+        >
           <EditorPanel
             ref={editorPanelRef}
             onPromptSelected={handlePromptSelected}
@@ -133,38 +120,38 @@ export default function Home() {
             selectedModelIds={selectedModelIds}
             activeRunId={activeRunId}
             onActiveRunIdChange={setActiveRunIdState}
+            onToggleCompactMode={toggleCompactMode}
+            isCompactMode={isCompactMode}
           />
         </div>
 
-        {/* Resizable Divider */}
-        <div
-          onMouseDown={handleDividerMouseDown}
-          className="w-1 bg-gray-300 hover:bg-primary cursor-col-resize transition-colors flex-shrink-0"
-          title="Drag to resize panels"
-        />
+        {/* Right Panel: Results */}
+        {!isCompactMode && (
+          <div
+            style={{ width: '60%' }}
+            className="overflow-y-auto flex flex-col px-6 transition-all duration-300 ease-in-out"
+          >
+            {/* Model Manager */}
+            <div className="mb-4">
+              <ModelManager selectedModelIds={selectedModelIds} onModelsChange={setSelectedModelIds} />
+            </div>
 
-        {/* Right Panel: Results (resizable) */}
-        <div style={{ width: `${100 - leftPanelWidth}%` }} className="overflow-y-auto flex flex-col px-6 transition-none">
-          {/* Model Manager */}
-          <div className="mb-4">
-            <ModelManager selectedModelIds={selectedModelIds} onModelsChange={setSelectedModelIds} />
+            <div className="space-y-4 flex-1">
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">Results</h1>
+              {currentRun && (
+                <ResultsGrid
+                  run={currentRun}
+                  dataset={currentDataset}
+                  metricView={metricView}
+                  onMetricViewChange={setMetricView}
+                  showParsedOnly={showParsedOnly}
+                  activeRunId={activeRunId}
+                  isHistoricalView={false}
+                />
+              )}
+            </div>
           </div>
-
-          <div className="space-y-4 flex-1">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">Results</h1>
-            {currentRun && (
-              <ResultsGrid
-                run={currentRun}
-                dataset={currentDataset}
-                metricView={metricView}
-                onMetricViewChange={setMetricView}
-                showParsedOnly={showParsedOnly}
-                activeRunId={activeRunId}
-                isHistoricalView={false}
-              />
-            )}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

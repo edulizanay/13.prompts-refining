@@ -114,8 +114,7 @@ export function PromptEditor({ value, onChange, placeholder }: PromptEditorProps
     '&': {
       fontSize: '0.875rem',
       fontFamily: "'Courier New', Courier, monospace",
-      minHeight: '30vh',
-      maxHeight: '60vh',
+      height: '50vh',
       border: '1px solid #d1d5db',
       borderRadius: '0.375rem',
       backgroundColor: 'white',

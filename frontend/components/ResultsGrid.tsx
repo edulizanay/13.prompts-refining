@@ -137,7 +137,7 @@ export function ResultsGrid({ run, dataset, metricView, onMetricViewChange, show
 
           {/* Summary Row */}
           <tr className="bg-accent-light border-t-2 border-gray-300 font-semibold">
-            <td className="px-4 py-2 text-gray-900 bg-gray-100">Average</td>
+            <td className="px-4 py-2 text-gray-900 bg-gray-100">Avg</td>
             {modelIds.map((modelId) => (
               <td key={`summary-${modelId}`} className="px-4 py-2">
                 <SummaryCell cells={cells} modelId={modelId} metricView={metricView} />
