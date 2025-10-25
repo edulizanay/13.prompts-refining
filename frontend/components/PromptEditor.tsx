@@ -1,12 +1,12 @@
 // ABOUTME: CodeMirror-based editor component for prompt text editing
-// ABOUTME: Provides line numbers, custom scrollbar, and viewport-relative sizing
+// ABOUTME: Provides line numbers, custom scrollbar, viewport-relative sizing, and syntax highlighting
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
-import { EditorView } from '@codemirror/view';
-import { EditorState } from '@codemirror/state';
+import { EditorView, Decoration, ViewPlugin, DecorationSet, ViewUpdate } from '@codemirror/view';
+import { EditorState, Range } from '@codemirror/state';
+import { foldService } from '@codemirror/language';
 
 interface PromptEditorProps {
   value: string;
@@ -14,9 +14,101 @@ interface PromptEditorProps {
   placeholder?: string;
 }
 
-export function PromptEditor({ value, onChange, placeholder }: PromptEditorProps) {
-  const [isFocused, setIsFocused] = useState(false);
+// Syntax highlighting plugin for {{variables}} and <tags>
+const syntaxHighlightPlugin = ViewPlugin.fromClass(
+  class {
+    decorations: DecorationSet;
 
+    constructor(view: EditorView) {
+      this.decorations = this.buildDecorations(view);
+    }
+
+    update(update: ViewUpdate) {
+      if (update.docChanged || update.viewportChanged) {
+        this.decorations = this.buildDecorations(update.view);
+      }
+    }
+
+    buildDecorations(view: EditorView): DecorationSet {
+      const decorations: Range<Decoration>[] = [];
+      const text = view.state.doc.toString();
+
+      // Match {{variables}}
+      const variableRegex = /\{\{([a-zA-Z0-9_]+)\}\}/g;
+      let match: RegExpExecArray | null;
+
+      while ((match = variableRegex.exec(text)) !== null) {
+        const from = match.index;
+        const to = from + match[0].length;
+        decorations.push(
+          Decoration.mark({
+            class: 'cm-prompt-variable',
+          }).range(from, to)
+        );
+      }
+
+      // Match <tags>
+      const tagRegex = /<\/?[a-zA-Z][a-zA-Z0-9]*>/g;
+      while ((match = tagRegex.exec(text)) !== null) {
+        const from = match.index;
+        const to = from + match[0].length;
+        decorations.push(
+          Decoration.mark({
+            class: 'cm-prompt-tag',
+          }).range(from, to)
+        );
+      }
+
+      return Decoration.set(decorations.sort((a, b) => a.from - b.from));
+    }
+  },
+  {
+    decorations: (v) => v.decorations,
+  }
+);
+
+// Indentation-based folding service
+const indentFoldService = foldService.of((state, from) => {
+  const line = state.doc.lineAt(from);
+  const lineText = line.text;
+
+  // Get indentation of current line
+  const indent = lineText.match(/^\s*/)?.[0].length ?? 0;
+
+  // Don't fold if line is empty or has no content after indent
+  if (lineText.trim().length === 0) return null;
+
+  let foldEnd = line.to;
+  let nextLine = line.number + 1;
+
+  // Find all subsequent lines with deeper indentation
+  while (nextLine <= state.doc.lines) {
+    const next = state.doc.line(nextLine);
+    const nextText = next.text;
+    const nextIndent = nextText.match(/^\s*/)?.[0].length ?? 0;
+
+    // Skip empty lines
+    if (nextText.trim().length === 0) {
+      nextLine++;
+      continue;
+    }
+
+    // Stop if we hit a line with same or less indentation
+    if (nextIndent <= indent) break;
+
+    foldEnd = next.to;
+    nextLine++;
+  }
+
+  // Only fold if we found at least one indented line
+  if (foldEnd > line.to) {
+    return { from: line.to, to: foldEnd };
+  }
+
+  return null;
+});
+
+export function PromptEditor({ value, onChange, placeholder }: PromptEditorProps) {
   // Custom theme with purple focus ring and styled scrollbar
   const customTheme = EditorView.theme({
     '&': {
@@ -76,19 +168,34 @@ export function PromptEditor({ value, onChange, placeholder }: PromptEditorProps
     '.cm-scroller::-webkit-scrollbar-thumb:hover': {
       background: '#9ca3af',
     },
+    // Syntax highlighting styles
+    '.cm-prompt-variable': {
+      color: '#8685ef',
+      fontWeight: '700',
+      background: '#faf8ff',
+      borderRadius: '2px',
+      padding: '0 2px',
+    },
+    '.cm-prompt-tag': {
+      color: '#8685ef',
+      fontWeight: '700',
+      background: '#faf8ff',
+      borderRadius: '2px',
+      padding: '0 2px',
+    },
+    // Fold gutter styling
+    '.cm-foldGutter': {
+      backgroundColor: '#fafafa',
+    },
   });
 
-  // Extensions for line numbers and custom placeholder
+  // Extensions for line numbers, syntax highlighting, folding, and custom placeholder
   const extensions = [
     customTheme,
+    syntaxHighlightPlugin,
+    indentFoldService,
     EditorView.lineWrapping,
     EditorState.tabSize.of(2),
-    ...(placeholder ? [
-      EditorView.domEventHandlers({
-        focus: () => setIsFocused(true),
-        blur: () => setIsFocused(false),
-      }),
-    ] : []),
   ];
 
   return (
@@ -102,7 +209,7 @@ export function PromptEditor({ value, onChange, placeholder }: PromptEditorProps
           lineNumbers: true,
           highlightActiveLineGutter: true,
           highlightActiveLine: true,
-          foldGutter: false,
+          foldGutter: true,
           dropCursor: true,
           allowMultipleSelections: true,
           indentOnInput: true,
@@ -114,7 +221,7 @@ export function PromptEditor({ value, onChange, placeholder }: PromptEditorProps
           highlightSelectionMatches: false,
           closeBracketsKeymap: true,
           searchKeymap: true,
-          foldKeymap: false,
+          foldKeymap: true,
           completionKeymap: false,
           lintKeymap: false,
         }}
