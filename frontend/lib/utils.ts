@@ -117,12 +117,11 @@ export function formatTokens(tokenIn: number, tokenOut: number): string {
 }
 
 export function formatCost(cost: number): string {
-  return `$${cost.toFixed(4)}`;
+  return `$${cost.toFixed(3)}`;
 }
 
 export function formatLatency(ms: number): string {
-  if (ms < 1000) return `${ms}ms`;
-  return `${(ms / 1000).toFixed(1)}s`;
+  return `${ms}ms`;
 }
 
 export function truncate(text: string, maxLength: number = 200): string {
