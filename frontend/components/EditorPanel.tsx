@@ -84,11 +84,6 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
     onDatasetSelected?.(id);
   };
 
-  const handleGraderSelected = (id: string | null) => {
-    setLocalGraderId(id);
-    onGraderSelected?.(id);
-  };
-
   // Load prompts on mount
   useEffect(() => {
     const all = getAllPrompts();
@@ -146,15 +141,6 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
     setNewPromptName('');
     setNewPromptType('generator');
     setNewPromptDialog(false);
-  };
-
-  const handleUpdateExpectedOutput = (expectedOutput: 'none' | 'response' | 'json') => {
-    if (!currentPrompt) return;
-    const updated = updatePrompt(currentPrompt.id, { expected_output: expectedOutput });
-    if (updated) {
-      setCurrentPrompt(updated);
-      setPrompts(getAllPrompts());
-    }
   };
 
   const handleRun = useCallback(async () => {
@@ -432,51 +418,6 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
           </div>
         </div>
       )}
-
-      {/* Expected Output */}
-      <div className="space-y-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="text-sm text-left text-gray-700 hover:text-primary cursor-pointer transition-colors p-0 border-0 bg-transparent">
-              {currentPrompt.expected_output === 'none' ? 'No parsing' : currentPrompt.expected_output === 'response' ? 'Extract <response> tags' : 'JSON format'}
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="start">
-            <DropdownMenuItem onClick={() => handleUpdateExpectedOutput('none')}>
-              No parsing
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleUpdateExpectedOutput('response')}>
-              Extract &lt;response&gt; tags
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleUpdateExpectedOutput('json')}>
-              JSON format
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      {/* Grader Selector */}
-      <div className="space-y-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="text-sm text-left text-gray-700 hover:text-primary cursor-pointer transition-colors p-0 border-0 bg-transparent">
-              {selectedGraderId ? prompts.find(p => p.id === selectedGraderId)?.name : 'No grader'}
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="start">
-            <DropdownMenuItem onClick={() => handleGraderSelected(null)}>
-              No grader
-            </DropdownMenuItem>
-            {prompts
-              .filter((p) => p.type === 'grader')
-              .map((p) => (
-                <DropdownMenuItem key={p.id} onClick={() => handleGraderSelected(p.id)}>
-                  {p.name}
-                </DropdownMenuItem>
-              ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
 
       {/* Dataset Selector */}
       <DatasetSelector selectedDatasetId={selectedDatasetId} onDatasetSelected={handleDatasetSelected} />

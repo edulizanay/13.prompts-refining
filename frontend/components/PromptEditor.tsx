@@ -59,6 +59,18 @@ const syntaxHighlightPlugin = ViewPlugin.fromClass(
         );
       }
 
+      // Match the word "json" (case-insensitive)
+      const jsonRegex = /\bjson\b/gi;
+      while ((match = jsonRegex.exec(text)) !== null) {
+        const from = match.index;
+        const to = from + match[0].length;
+        decorations.push(
+          Decoration.mark({
+            class: 'cm-prompt-tag',
+          }).range(from, to)
+        );
+      }
+
       return Decoration.set(decorations.sort((a, b) => a.from - b.from));
     }
   },

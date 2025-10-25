@@ -121,8 +121,7 @@ export function formatCost(cost: number): string {
 }
 
 export function formatLatency(ms: number): string {
-  if (ms < 1000) return `${ms}ms`;
-  return `${(ms / 1000).toFixed(1)}s`;
+  return `${Math.round(ms)}ms`;
 }
 
 export function truncate(text: string, maxLength: number = 200): string {

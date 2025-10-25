@@ -3,9 +3,8 @@
 
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { parseDatasetFile } from '@/lib/utils';
-import { createDataset, getDatasetById } from '@/lib/mockRepo.temp';
+import { useState, useEffect } from 'react';
+import { getDatasetById } from '@/lib/mockRepo.temp';
 import { Modal } from '@/components/ui/modal';
 
 interface DatasetSelectorProps {
@@ -13,45 +12,14 @@ interface DatasetSelectorProps {
   onDatasetSelected: (datasetId: string | null) => void;
 }
 
-export function DatasetSelector({ selectedDatasetId, onDatasetSelected }: DatasetSelectorProps) {
+export function DatasetSelector({ selectedDatasetId }: DatasetSelectorProps) {
   const [mounted, setMounted] = useState(false);
-  const [uploadLoading, setUploadLoading] = useState(false);
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [previewDatasetId, setPreviewDatasetId] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load on mount
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  const showToast = (type: 'success' | 'error', message: string) => {
-    setToast({ type, message });
-    setTimeout(() => setToast(null), 3000);
-  };
-
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.currentTarget.files?.[0];
-    if (!file) return;
-
-    setUploadLoading(true);
-    try {
-      const text = await file.text();
-      const result = parseDatasetFile(text, file.name);
-      const dataset = createDataset(file.name.replace(/\.[^.]+$/, ''), result.headers, result.rows);
-      onDatasetSelected(dataset.id);
-      showToast('success', `Dataset "${dataset.name}" uploaded successfully`);
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to parse dataset';
-      showToast('error', message);
-    } finally {
-      setUploadLoading(false);
-    }
-  };
 
   const selectedDataset = selectedDatasetId ? getDatasetById(selectedDatasetId) : null;
   const previewDataset = previewDatasetId ? getDatasetById(previewDatasetId) : null;
@@ -61,27 +29,6 @@ export function DatasetSelector({ selectedDatasetId, onDatasetSelected }: Datase
   return (
     <div className="space-y-2">
       <div className="flex gap-2 items-center">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".csv,.json"
-          onChange={handleFileSelect}
-          disabled={uploadLoading}
-          className="hidden"
-        />
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploadLoading}
-          className="px-3 py-1 text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200 rounded hover:border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-        >
-          {uploadLoading ? (
-            <>
-              <span className="inline-block w-3 h-3 border-2 border-gray-700 border-t-transparent rounded-full animate-spin"></span>
-            </>
-          ) : (
-            '+ Upload Dataset'
-          )}
-        </button>
         {selectedDataset && (
           <button
             onClick={() => setPreviewDatasetId(selectedDataset.id)}
@@ -95,18 +42,6 @@ export function DatasetSelector({ selectedDatasetId, onDatasetSelected }: Datase
       {selectedDataset && (
         <div className="text-xs text-gray-500">
           Selected: <span className="font-medium">{selectedDataset.name}</span> ({selectedDataset.row_count} rows)
-        </div>
-      )}
-
-      {toast && (
-        <div
-          className={`p-2 rounded-md text-xs ${
-            toast.type === 'success'
-              ? 'bg-green-100 text-green-700'
-              : 'bg-red-100 text-red-700'
-          }`}
-        >
-          {toast.message}
         </div>
       )}
 

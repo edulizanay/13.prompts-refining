@@ -15,13 +15,12 @@ interface ResultsGridProps {
   run: Run;
   dataset: Dataset | null;
   metricView: 'grade' | 'tokens' | 'cost' | 'latency';
-  onMetricViewChange: (view: 'grade' | 'tokens' | 'cost' | 'latency') => void;
   showParsedOnly: boolean;
   activeRunId: string | null;
   isHistoricalView?: boolean;
 }
 
-export function ResultsGrid({ run, dataset, metricView, onMetricViewChange, showParsedOnly, activeRunId, isHistoricalView = false }: ResultsGridProps) {
+export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRunId, isHistoricalView = false }: ResultsGridProps) {
   const [cells, setCells] = useState<Cell[]>([]);
   const [, setUpdateTrigger] = useState(0);
   const [expandedCell, setExpandedCell] = useState<Cell | null>(null);
@@ -53,24 +52,6 @@ export function ResultsGrid({ run, dataset, metricView, onMetricViewChange, show
 
   return (
     <div className="space-y-4">
-      {/* Metric Toggle Toolbar */}
-      <div className="flex gap-2 items-center bg-gray-50 p-3 rounded-lg border border-gray-200">
-        <span className="text-xs font-medium text-gray-600">View:</span>
-        {(['grade', 'tokens', 'cost', 'latency'] as const).map((view) => (
-          <button
-            key={view}
-            onClick={() => onMetricViewChange(view)}
-            className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-              metricView === view
-                ? 'bg-primary text-white'
-                : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
-            }`}
-          >
-            {view.charAt(0).toUpperCase() + view.slice(1)}
-          </button>
-        ))}
-      </div>
-
       {/* Results Table */}
       <div className="overflow-x-auto border border-gray-200 rounded-lg">
         <table className="w-full text-sm">
@@ -78,13 +59,13 @@ export function ResultsGrid({ run, dataset, metricView, onMetricViewChange, show
         <thead>
           <tr className="bg-gray-50 border-b border-gray-200">
             {/* Row index header */}
-            <th className="px-4 py-2 text-left font-semibold text-gray-700 min-w-[80px]">Row</th>
+            <th className="px-4 py-2 text-left font-semibold text-gray-700 w-[64px]">Row</th>
 
             {/* Model columns */}
             {modelIds.map((modelId) => {
               const model = getModelById(modelId);
               return (
-                <th key={modelId} className="px-4 py-2 text-left font-semibold text-gray-700 min-w-[300px]">
+                <th key={modelId} className="px-4 py-2 text-left font-semibold text-gray-700 w-[300px] text-[0.8em]">
                   {model ? `${model.provider} / ${model.model}` : 'Unknown Model'}
                 </th>
               );
@@ -97,7 +78,7 @@ export function ResultsGrid({ run, dataset, metricView, onMetricViewChange, show
           {Array.from({ length: rowCount }).map((_, rowIndex) => (
             <tr key={rowIndex} className="border-b border-gray-200 hover:bg-gray-50">
               {/* Row index cell */}
-              <td className="px-4 py-2 text-gray-600 font-medium bg-gray-50">
+              <td className="px-4 py-2 text-gray-600 font-medium bg-gray-50 w-[64px]">
                 {rowIndex + 1}
               </td>
 
@@ -105,7 +86,7 @@ export function ResultsGrid({ run, dataset, metricView, onMetricViewChange, show
               {modelIds.map((modelId) => {
                 const cell = getCellForRow(rowIndex, modelId);
                 return (
-                  <td key={`${rowIndex}-${modelId}`} className="px-4 py-2">
+                  <td key={`${rowIndex}-${modelId}`} className="px-4 py-2 w-[300px]">
                     {cell ? (
                       <ResultCellView
                         cell={cell}
@@ -137,9 +118,9 @@ export function ResultsGrid({ run, dataset, metricView, onMetricViewChange, show
 
           {/* Summary Row */}
           <tr className="bg-accent-light border-t-2 border-gray-300 font-semibold">
-            <td className="px-4 py-2 text-gray-900 bg-gray-100">Avg</td>
+            <td className="px-4 py-2 text-gray-900 bg-gray-100 w-[64px]">Avg</td>
             {modelIds.map((modelId) => (
-              <td key={`summary-${modelId}`} className="px-4 py-2">
+              <td key={`summary-${modelId}`} className="px-4 py-2 w-[300px]">
                 <SummaryCell cells={cells} modelId={modelId} metricView={metricView} />
               </td>
             ))}
@@ -457,14 +438,14 @@ function MetricBadge({ cell, metricView, showGraderOverlay, onToggleGrader, isEr
         }}
         className={`flex items-center justify-center min-w-[63px] px-2 py-1.5 rounded-lg font-semibold text-[0.6125rem] leading-tight transition-all shadow-md border ${
           isNeutral
-            ? 'bg-gradient-to-br from-purple-200 to-purple-300 text-purple-900 border-purple-300 hover:from-purple-300 hover:to-purple-400'
+            ? 'bg-purple-50 text-primary border-purple-200 hover:bg-purple-100 hover:border-primary'
             : `${styles.bgClass} ${styles.textClass} border ${styles.borderClass}`
         }`}
         title="Click to toggle pass/fail"
       >
         {isGreen && <ThumbsUp className="w-4 h-4" />}
         {isRed && <ThumbsDown className="w-4 h-4" />}
-        {isNeutral && <ThumbsUp className="w-4 h-4 opacity-40" />}
+        {isNeutral && <ThumbsUp className="w-4 h-4" />}
       </button>
     );
   }
@@ -517,24 +498,24 @@ function SummaryCell({ cells, modelId, metricView }: SummaryCellProps) {
       const grade = c.manual_grade !== null ? c.manual_grade : (c.graded_value ?? 0);
       return sum + grade;
     }, 0) / validCells.length;
-    return <div className="text-xs font-medium text-gray-900">{formatGrade(avg)}</div>;
+    return <div className="text-xs font-medium text-gray-900 text-right">{formatGrade(avg)}</div>;
   }
 
   if (metricView === 'tokens') {
     const avgIn = validCells.reduce((sum, c) => sum + c.tokens_in, 0) / validCells.length;
     const avgOut = validCells.reduce((sum, c) => sum + c.tokens_out, 0) / validCells.length;
-    return <div className="text-xs font-medium text-gray-900">{formatTokens(Math.round(avgIn), Math.round(avgOut))}</div>;
+    return <div className="text-xs font-medium text-gray-900 text-right">{formatTokens(Math.round(avgIn), Math.round(avgOut))}</div>;
   }
 
   if (metricView === 'cost') {
     const avg = validCells.reduce((sum, c) => sum + c.cost, 0) / validCells.length;
-    return <div className="text-xs font-medium text-gray-900">{formatCost(avg)}</div>;
+    return <div className="text-xs font-medium text-gray-900 text-right">{formatCost(avg)}</div>;
   }
 
   if (metricView === 'latency') {
     const avg = validCells.reduce((sum, c) => sum + c.latency_ms, 0) / validCells.length;
-    return <div className="text-xs font-medium text-gray-900">{formatLatency(Math.round(avg))}</div>;
+    return <div className="text-xs font-medium text-gray-900 text-right">{formatLatency(Math.round(avg))}</div>;
   }
 
-  return <div className="text-xs text-gray-400">—</div>;
+  return <div className="text-xs text-gray-400 text-right">—</div>;
 }

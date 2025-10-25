@@ -403,3 +403,7 @@ Tables (representative columns only):
 - No multiple concurrent dataset runs (single active run).
 - No server-side JSON schema validation beyond “is valid JSON” (no schema matching).
 - No Run state polling; we’ll use Realtime when backend lands (UI v1 can mock).
+
+
+
+#### If the prompt includes <response> tags, those should be a validation. If the prompt includes the word JSON, it should be validated against JSON. If both first response, then JSON.

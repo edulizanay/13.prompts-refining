@@ -153,9 +153,10 @@ describe('utils', () => {
       expect(formatLatency(100)).toBe('100ms');
     });
 
-    it('formats seconds for 1000+ms', () => {
-      expect(formatLatency(1500)).toBe('1.5s');
-      expect(formatLatency(2000)).toBe('2.0s');
+    it('formats milliseconds for values 1000+', () => {
+      expect(formatLatency(1500)).toBe('1500ms');
+      expect(formatLatency(2000)).toBe('2000ms');
+      expect(formatLatency(1234.567)).toBe('1235ms');
     });
   });
 
