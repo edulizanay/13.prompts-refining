@@ -70,6 +70,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
   const [isRunning, setIsRunning] = useState(false);
   const [errorDialog, setErrorDialog] = useState<string | null>(null);
   const textIsChangedRef = useRef(false);
+  const previousSelectedIdRef = useRef<string>('');
 
   // Use prop values if provided, otherwise use local state
   const selectedDatasetId = propDatasetId !== undefined ? propDatasetId : localDatasetId;
@@ -99,27 +100,53 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
     setMounted(true);
   }, []);
 
+  const handleUpdateText = (text: string) => {
+    if (!currentPrompt) return;
+    setCurrentPrompt({ ...currentPrompt, text });
+    textIsChangedRef.current = true;
+  };
+
+  const saveIfChanged = useCallback(() => {
+    if (!currentPrompt || !textIsChangedRef.current) return;
+    console.log('[EditorPanel] Saving prompt changes:', currentPrompt.id);
+    const updated = updatePrompt(currentPrompt.id, { text: currentPrompt.text });
+    if (updated) {
+      setCurrentPrompt(updated);
+      setPrompts(getAllPrompts());
+      textIsChangedRef.current = false;
+      console.log('[EditorPanel] Save successful');
+    }
+  }, [currentPrompt]);
+
   // Sync currentPrompt when selectedId changes
   useEffect(() => {
-    if (selectedId) {
+    if (selectedId && selectedId !== previousSelectedIdRef.current) {
+      // Save current prompt before switching (only if we had a previous prompt)
+      if (previousSelectedIdRef.current && textIsChangedRef.current && currentPrompt) {
+        console.log('[EditorPanel] Saving prompt changes before switching:', currentPrompt.id);
+        const updated = updatePrompt(currentPrompt.id, { text: currentPrompt.text });
+        if (updated) {
+          setPrompts(getAllPrompts());
+          textIsChangedRef.current = false;
+          console.log('[EditorPanel] Save successful');
+        }
+      }
+
+      // Load new prompt
       const prompt = getPromptById(selectedId);
       if (prompt) {
         setCurrentPrompt(prompt);
         setRenameInput(prompt.name);
         onPromptSelected?.(prompt);
       }
-    }
-  }, [selectedId, onPromptSelected]);
 
-
-  const handleUpdateText = (text: string) => {
-    if (!currentPrompt) return;
-    const updated = updatePrompt(currentPrompt.id, { text });
-    if (updated) {
-      setCurrentPrompt(updated);
-      setPrompts(getAllPrompts());
-      textIsChangedRef.current = true;
+      previousSelectedIdRef.current = selectedId;
     }
+  }, [selectedId, onPromptSelected, currentPrompt]);
+
+  const handleEditorBlur = () => {
+    saveIfChanged();
+    onEditorBlur?.();
   };
 
   const handleRenamePrompt = () => {
@@ -144,6 +171,9 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
 
   const handleRun = useCallback(async () => {
     if (!currentPrompt || activeRunId) return;
+
+    // Save any unsaved changes before running
+    saveIfChanged();
 
     // Validate
     const dataset = selectedDatasetId ? getDatasetById(selectedDatasetId) : null;
@@ -200,7 +230,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
       setIsRunning(false);
       onActiveRunIdChange?.(null);
     }
-  }, [currentPrompt, activeRunId, selectedDatasetId, selectedGraderId, selectedModelIds, onActiveRunIdChange, onRunClick]);
+  }, [currentPrompt, activeRunId, selectedDatasetId, selectedGraderId, selectedModelIds, onActiveRunIdChange, onRunClick, saveIfChanged]);
 
   // Expose triggerRun via ref for keyboard shortcuts
   useImperativeHandle(ref, () => ({
@@ -345,7 +375,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
           onChange={handleUpdateText}
           placeholder={ONBOARDING_PLACEHOLDER}
           onFocus={onEditorFocus}
-          onBlur={onEditorBlur}
+          onBlur={handleEditorBlur}
         />
         {/* Run Button Overlay */}
         <div className="absolute bottom-4 right-4">

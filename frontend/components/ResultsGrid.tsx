@@ -622,7 +622,7 @@ function MetricBadge({ cell, metricView, showGraderOverlay, onToggleGrader, isEr
     badgeContent = '—';
   }
 
-  const commonClasses = `min-w-[63px] px-2 py-1.5 rounded-lg font-semibold text-[0.6125rem] leading-tight transition-all shadow-md text-center ${badgeColor}`;
+  const commonClasses = `min-w-[63px] min-h-[32px] px-2 py-1.5 rounded-lg font-semibold text-[0.6125rem] leading-tight transition-[width,height,background-color,border-color,opacity,shadow] duration-fast ease-in-out shadow-md text-center ${badgeColor}`;
   const clickableClasses = isClickable ? 'hover:shadow-lg cursor-pointer' : '';
 
   // Manual toggle with thumbs icon
@@ -638,16 +638,18 @@ function MetricBadge({ cell, metricView, showGraderOverlay, onToggleGrader, isEr
           e.stopPropagation();
           handleManualToggle();
         }}
-        className={`flex items-center justify-center min-w-[63px] px-2 py-1.5 rounded-lg font-semibold text-[0.6125rem] leading-tight transition-all shadow-md border ${
+        className={`flex items-center justify-center min-w-[63px] min-h-[32px] px-2 py-1.5 rounded-lg font-semibold text-[0.6125rem] leading-tight transition-[width,height,background-color,border-color,opacity,shadow] duration-fast ease-in-out shadow-md border ${
           isNeutral
             ? 'bg-purple-50 text-purple-500 border-purple-200 hover:bg-purple-100 hover:border-purple-500'
             : `${styles.bgClass} ${styles.textClass} border ${styles.borderClass}`
         }`}
         title="Click to toggle pass/fail"
       >
-        {isGreen && <ThumbsUp className={`w-[12.8px] h-[12.8px] ${styles.iconClass}`} />}
-        {isRed && <ThumbsDown className={`w-[12.8px] h-[12.8px] ${styles.iconClass}`} />}
-        {isNeutral && <ThumbsUp className="w-[12.8px] h-[12.8px]" />}
+        <span key={`${metricView}-${displayGrade}`} className="animate-scale-in-content">
+          {isGreen && <ThumbsUp className={`w-[12.8px] h-[12.8px] ${styles.iconClass}`} />}
+          {isRed && <ThumbsDown className={`w-[12.8px] h-[12.8px] ${styles.iconClass}`} />}
+          {isNeutral && <ThumbsUp className="w-[12.8px] h-[12.8px]" />}
+        </span>
       </button>
     );
   }
@@ -655,21 +657,25 @@ function MetricBadge({ cell, metricView, showGraderOverlay, onToggleGrader, isEr
   if (isClickable) {
     return (
       <button
-        className={`${commonClasses} ${clickableClasses} ${showGraderOverlay ? 'ring-2 ring-blue-400' : ''}`}
+        className={`${commonClasses} ${clickableClasses} ${showGraderOverlay ? 'ring-2 ring-blue-400 transition-[box-shadow] duration-fast ease-in-out' : ''}`}
         onClick={(e) => {
           e.stopPropagation();
           onToggleGrader();
         }}
         title={hasGrader ? 'Click to view grader output' : undefined}
       >
-        {badgeContent}
+        <span key={metricView} className="animate-scale-in-content">
+          {badgeContent}
+        </span>
       </button>
     );
   }
 
   return (
     <div className={`${commonClasses} flex items-center justify-center`}>
-      {badgeContent}
+      <span key={metricView} className="animate-scale-in-content">
+        {badgeContent}
+      </span>
     </div>
   );
 }
@@ -702,23 +708,47 @@ function SummaryCell({ cells, columnIndex, modelId, metricView }: SummaryCellPro
       const grade = c.manual_grade !== null ? c.manual_grade : (c.graded_value ?? 0);
       return sum + grade;
     }, 0) / validCells.length;
-    return <div className="text-xs font-medium text-neutral-900 text-right">{formatGrade(avg)}</div>;
+    return (
+      <div className="text-xs font-medium text-neutral-900 text-right">
+        <span key={metricView} className="animate-scale-in-content inline-block">
+          {formatGrade(avg)}
+        </span>
+      </div>
+    );
   }
 
   if (metricView === 'tokens') {
     const avgIn = validCells.reduce((sum, c) => sum + c.tokens_in, 0) / validCells.length;
     const avgOut = validCells.reduce((sum, c) => sum + c.tokens_out, 0) / validCells.length;
-    return <div className="text-xs font-medium text-neutral-900 text-right">{formatTokens(Math.round(avgIn), Math.round(avgOut))}</div>;
+    return (
+      <div className="text-xs font-medium text-neutral-900 text-right">
+        <span key={metricView} className="animate-scale-in-content inline-block">
+          {formatTokens(Math.round(avgIn), Math.round(avgOut))}
+        </span>
+      </div>
+    );
   }
 
   if (metricView === 'cost') {
     const avg = validCells.reduce((sum, c) => sum + c.cost, 0) / validCells.length;
-    return <div className="text-xs font-medium text-neutral-900 text-right">{formatCost(avg)}</div>;
+    return (
+      <div className="text-xs font-medium text-neutral-900 text-right">
+        <span key={metricView} className="animate-scale-in-content inline-block">
+          {formatCost(avg)}
+        </span>
+      </div>
+    );
   }
 
   if (metricView === 'latency') {
     const avg = validCells.reduce((sum, c) => sum + c.latency_ms, 0) / validCells.length;
-    return <div className="text-xs font-medium text-neutral-900 text-right">{formatLatency(Math.round(avg))}</div>;
+    return (
+      <div className="text-xs font-medium text-neutral-900 text-right">
+        <span key={metricView} className="animate-scale-in-content inline-block">
+          {formatLatency(Math.round(avg))}
+        </span>
+      </div>
+    );
   }
 
   return <div className="text-xs text-neutral-400 text-right">—</div>;

@@ -230,12 +230,14 @@ export default function Home() {
                   <div className="ml-auto flex gap-2">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <button className="px-4 py-2 bg-purple-50 text-purple-500 border border-purple-200 rounded-full hover:bg-purple-100 hover:border-purple-500 transition-all duration-150 text-sm font-medium flex items-center gap-2">
-                          {selectedGraderId ? (
-                            <span>{prompts.find(p => p.id === selectedGraderId)?.name}</span>
-                          ) : (
-                            <FlaskConicalIcon size={16} />
-                          )}
+                        <button className="px-4 py-2 bg-purple-50 text-purple-500 border border-purple-200 rounded-full hover:bg-purple-100 hover:border-purple-500 transition-[width,background-color,border-color] duration-fast ease-in-out text-sm font-medium flex items-center gap-2">
+                          <span key={selectedGraderId || 'no-grader'} className="animate-scale-in-content">
+                            {selectedGraderId ? (
+                              <span>{prompts.find(p => p.id === selectedGraderId)?.name}</span>
+                            ) : (
+                              <FlaskConicalIcon size={16} />
+                            )}
+                          </span>
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="w-56" align="end">

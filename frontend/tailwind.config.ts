@@ -165,6 +165,15 @@ const config: Config = {
           '100%': { opacity: '0' },
         },
 
+        // Scale + fade for content swaps
+        // Use case: Wrap dynamic content (icon ↔ text, label changes, etc.) in a span with key prop
+        // Example: <span key={id} className="animate-scale-in-content">{content}</span>
+        // The key change triggers React re-render, which runs this animation
+        'scale-in-content': {
+          '0%': { transform: 'scale(0.6)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+
         // Slide animations
         'slide-in-from-top': {
           '0%': { transform: 'translateY(-10px)', opacity: '0' },
@@ -218,6 +227,9 @@ const config: Config = {
         // Fade
         'fade-in': 'fade-in 200ms ease-out',
         'fade-out': 'fade-out 150ms ease-in',
+
+        // Scale + fade (for content swaps)
+        'scale-in-content': 'scale-in-content 400ms ease-out',
 
         // Slide in
         'slide-in-from-top': 'slide-in-from-top 300ms ease-out',
