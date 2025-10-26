@@ -242,7 +242,7 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
         {modelIds.length < MAX_MODELS && (
           <button
             onClick={handleOpenAddDialog}
-            className="flex-shrink-0 w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-purple-500 hover:bg-purple-50 border-2 border-dashed border-neutral-300 hover:border-purple-300 rounded-lg transition-all"
+            className="flex-shrink-0 w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-purple-500 hover:bg-purple-50 border-2 border-neutral-300 hover:border-purple-300 rounded-full transition-all"
             title="Add model"
           >
             <span className="text-2xl leading-none">+</span>
