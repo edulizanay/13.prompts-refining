@@ -444,8 +444,8 @@ function MetricBadge({ cell, metricView, showGraderOverlay, onToggleGrader, isEr
         }`}
         title="Click to toggle pass/fail"
       >
-        {isGreen && <ThumbsUp className="w-[12.8px] h-[12.8px]" />}
-        {isRed && <ThumbsDown className="w-[12.8px] h-[12.8px]" />}
+        {isGreen && <ThumbsUp className={`w-[12.8px] h-[12.8px] ${styles.iconClass}`} />}
+        {isRed && <ThumbsDown className={`w-[12.8px] h-[12.8px] ${styles.iconClass}`} />}
         {isNeutral && <ThumbsUp className="w-[12.8px] h-[12.8px]" />}
       </button>
     );

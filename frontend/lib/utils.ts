@@ -77,28 +77,28 @@ export function gradeToStyles(grade: number | null): GradeStyles {
   const colorClass = gradeToColor(grade);
   const styleMap: Record<string, GradeStyles> = {
     green: {
-      bgClass: 'bg-green-100',
-      textClass: 'text-green-700',
-      borderClass: 'border-green-200',
-      iconClass: 'text-green-700',
+      bgClass: 'bg-success-50',
+      textClass: 'text-success-600',
+      borderClass: 'border-success-500',
+      iconClass: 'text-success-600',
     },
     yellow: {
-      bgClass: 'bg-amber-50',
-      textClass: 'text-amber-700',
-      borderClass: 'border-amber-200',
-      iconClass: 'text-amber-700',
+      bgClass: 'bg-warning-50',
+      textClass: 'text-warning-600',
+      borderClass: 'border-warning-500',
+      iconClass: 'text-warning-600',
     },
     red: {
-      bgClass: 'bg-red-50',
-      textClass: 'text-red-700',
-      borderClass: 'border-red-200',
-      iconClass: 'text-red-700',
+      bgClass: 'bg-error-50',
+      textClass: 'text-error-600',
+      borderClass: 'border-error-500',
+      iconClass: 'text-error-600',
     },
     gray: {
       bgClass: 'bg-gradient-to-br from-purple-200 to-purple-300',
       textClass: 'text-purple-900',
       borderClass: 'border-purple-300',
-      iconClass: 'text-purple-1000',
+      iconClass: 'text-purple-900',
     },
   };
   return styleMap[colorClass];
