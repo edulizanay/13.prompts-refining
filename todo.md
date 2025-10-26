@@ -1,44 +1,90 @@
 # Prompt Refinement Backend TODO
 
-## Snapshot
-- **Phase**: Backend Foundation & Integration (see `plan.md`)
-- **Current Focus**: Step A1.1 — Scaffold backend workspace
-- **Owner**: Backend squad (Edu to review milestones)
-- **Last Updated**: 2025-10-24
+## Current Focus
+**Mode**: Supabase-backed implementation (YAGNI approach)
+**Current Slice**: Slice 1 — Prompts (Basic CRUD)
+**Owner**: Edu + Claude
+**Last Updated**: 2025-10-26
 
 ---
 
-## Phase A — Backend Foundation
-- [ ] **A1.1** Scaffold backend workspace
-- [ ] **A1.2** Tooling & quality gates
-- [ ] **A1.3** Fastify server skeleton
-- [ ] **A2.1** Environment loader
-- [ ] **A2.2** Error handling utilities
-- [ ] **A3.1** Drizzle bootstrap & base schema
-- [ ] **A3.2** Dataset schema & persistence
-- [ ] **A3.3** Run schema completion
+## Slice 1 — Prompts (Basic CRUD)
+- [ ] 1.1 Supabase project setup
+  - [ ] Run `supabase init`
+  - [ ] Create `prompt` table migration with RLS
+  - [ ] Verify `supabase db reset` works
+- [ ] 1.2 Prompt data layer
+  - [ ] Create Supabase client modules (browser + server)
+  - [ ] Create `frontend/lib/data/prompts.ts` with CRUD functions
+  - [ ] Write integration tests for CRUD + RLS
+- [ ] 1.3 Replace prompt mocks
+  - [ ] Update UI to use new data layer
+  - [ ] Delete `frontend/lib/mockRepo.temp.ts` prompt code
+  - [ ] Add Playwright E2E test
 
-## Phase B — Domain Services
-- [ ] **B1.1** Prompt service with versioning
-- [ ] **B1.2** Dataset ingestion pipeline
-- [ ] **B2.1** Model config registry
+## Slice 2 — Datasets (Upload & Preview)
+- [ ] 2.1 Dataset schema
+  - [ ] Create `dataset` and `dataset_row` tables migration
+  - [ ] Add RLS policies
+  - [ ] Write integration tests
+- [ ] 2.2 Dataset upload
+  - [ ] Create `POST /api/datasets` Route Handler
+  - [ ] Implement file parsing + Storage upload
+  - [ ] Write integration tests
+- [ ] 2.3 Dataset preview
+  - [ ] Create `GET /api/datasets/:id` endpoint
+  - [ ] Write integration tests
+- [ ] 2.4 Replace dataset mocks
+  - [ ] Update upload/preview UI
+  - [ ] Delete mock dataset code
+  - [ ] Add Playwright E2E test
 
-## Phase C — Run Execution Pipeline
-- [ ] **C1.1** Run creation & validation
-- [ ] **C1.2** Queue harness & worker skeleton
-- [ ] **C1.3** Provider adapters & mock executor
-- [ ] **C1.4** Grading & metrics
-- [ ] **C2.1** Run polling APIs
-- [ ] **C2.2** Supabase Realtime option (flagged)
+## Slice 3 — Runs (Synchronous Execution)
+- [ ] 3.1 Run schema
+  - [ ] Create `run`, `run_model`, `run_cell` tables migration
+  - [ ] Add foreign keys + RLS
+  - [ ] Write integration tests
+- [ ] 3.2 Run execution service
+  - [ ] Create executor calling Groq/Cerebras
+  - [ ] Implement dataset iteration
+  - [ ] Write unit tests
+- [ ] 3.3 Run API
+  - [ ] Create `POST /api/runs` Route Handler
+  - [ ] Create `GET /api/runs/:id` endpoint
+  - [ ] Write integration tests
+- [ ] 3.4 Replace run execution mocks
+  - [ ] Update Run button + results table
+  - [ ] Delete `frontend/lib/mockRunExecutor.temp.ts`
+  - [ ] Add Playwright E2E test
 
-## Phase D — Frontend Integration & Auth
-- [ ] **D1.1** Auth middleware
-- [ ] **D1.2** Prompt/dataset APIs + FE wiring
-- [ ] **D1.3** Run execution APIs + FE wiring
-- [ ] **D2.1** Remove mocks + feature flags
-- [ ] **D2.2** Config surface & cleanup
+## Slice 4 — Grading & Metrics
+- [ ] 4.1 Grading schema
+  - [ ] Add grade/token/cost columns to `run_cell`
+  - [ ] Write migration tests
+- [ ] 4.2 Grading utilities
+  - [ ] Create grader parsing logic
+  - [ ] Write unit tests
+- [ ] 4.3 Grading integration
+  - [ ] Update executor to run grader prompts
+  - [ ] Store grades + metrics
+  - [ ] Write integration tests
+- [ ] 4.4 Metrics UI
+  - [ ] Display grades, tokens, costs
+  - [ ] Add manual grade override
+  - [ ] Add Playwright E2E test
 
-## Phase E — Hardening & Ops
-- [ ] **E1** Observability & metrics
-- [ ] **E2** CI/CD pipeline
-- [ ] **E3** Documentation & onboarding
+## Slice 5 — Production Readiness (Deferred)
+Add only when measured need appears:
+- [ ] Pagination (when queries slow)
+- [ ] Cleanup jobs (when orphaned files accumulate)
+- [ ] Rate limiting (when abuse occurs)
+- [ ] Structured logging (when debugging gets hard)
+- [ ] Async execution (when synchronous blocks UX)
+
+---
+
+## Notes
+- Each slice must complete with passing tests before moving to next
+- Delete mock code immediately when replaced
+- Add optimizations (pagination, etc.) only when measurements show need
+- All features must work end-to-end before considering "done"
