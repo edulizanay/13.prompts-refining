@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { Run, Cell, Dataset, Model } from '@/lib/types';
 import { truncate, parseOutput, formatGrade, formatTokens, formatCost, formatLatency, gradeToStyles } from '@/lib/utils';
-import { getCellsByRunId, getModelById, upsertCell, getAllModels, createModel, getModelByProviderAndName } from '@/lib/mockRepo.temp';
+import { getCellsByRunId, getModelById, upsertCell, getAllModels, createModel, getModelByProviderAndName, deleteCellsByColumnIndex } from '@/lib/mockRepo.temp';
 import { generateMockCell } from '@/lib/mockRunExecutor.temp';
 import { Modal } from '@/components/ui/modal';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -82,7 +82,10 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
     setModels(getAllModels());
 
     if (editingIndex !== null) {
-      // Editing existing model
+      // Editing existing model - clear old cells for this column to prevent stale data
+      if (run) {
+        deleteCellsByColumnIndex(run.id, editingIndex);
+      }
       const newModelIds = [...selectedModelIds];
       newModelIds[editingIndex] = model.id;
       onModelsChange(newModelIds);
@@ -242,7 +245,7 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
         {modelIds.length < MAX_MODELS && (
           <button
             onClick={handleOpenAddDialog}
-            className="flex-shrink-0 w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-purple-500 hover:bg-purple-50 border-2 border-neutral-300 hover:border-purple-300 rounded-full transition-all"
+            className="flex-shrink-0 w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-purple-500 hover:bg-purple-50 rounded-full transition-all"
             title="Add model"
           >
             <span className="text-2xl leading-none">+</span>

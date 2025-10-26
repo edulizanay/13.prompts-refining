@@ -217,6 +217,23 @@ export function upsertCell(cell: Cell): Cell {
   return cell;
 }
 
+export function deleteCellsByColumnIndex(runId: string, columnIndex: number): void {
+  const data = localStorage.getItem(STORAGE_KEYS.CELLS);
+  if (!data) return;
+
+  const cells = JSON.parse(data) as Record<string, Cell>;
+  const filteredCells: Record<string, Cell> = {};
+
+  // Keep all cells except those matching the run_id and column_index
+  for (const [key, cell] of Object.entries(cells)) {
+    if (!(cell.run_id === runId && cell.column_index === columnIndex)) {
+      filteredCells[key] = cell;
+    }
+  }
+
+  localStorage.setItem(STORAGE_KEYS.CELLS, JSON.stringify(filteredCells));
+}
+
 // UI STATE
 
 export function getUIState(): UIState {
