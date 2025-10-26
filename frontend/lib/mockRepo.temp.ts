@@ -189,8 +189,8 @@ export function deleteRun(id: string): boolean {
 
 // CELLS
 
-function getCellKey(runId: string, modelId: string, rowIndex: number): string {
-  return `${runId}:${modelId}:${rowIndex}`;
+function getCellKey(runId: string, columnIndex: number, rowIndex: number): string {
+  return `${runId}:${columnIndex}:${rowIndex}`;
 }
 
 export function getCellsByRunId(runId: string): Cell[] {
@@ -200,18 +200,18 @@ export function getCellsByRunId(runId: string): Cell[] {
   return Object.values(cells).filter((c) => c.run_id === runId);
 }
 
-export function getCell(runId: string, modelId: string, rowIndex: number): Cell | null {
+export function getCell(runId: string, columnIndex: number, rowIndex: number): Cell | null {
   const data = localStorage.getItem(STORAGE_KEYS.CELLS);
   if (!data) return null;
   const cells = JSON.parse(data) as Record<string, Cell>;
-  const key = getCellKey(runId, modelId, rowIndex);
+  const key = getCellKey(runId, columnIndex, rowIndex);
   return cells[key] || null;
 }
 
 export function upsertCell(cell: Cell): Cell {
   const data = localStorage.getItem(STORAGE_KEYS.CELLS);
   const cells = data ? JSON.parse(data) : ({} as Record<string, Cell>);
-  const key = getCellKey(cell.run_id, cell.model_id, cell.row_index);
+  const key = getCellKey(cell.run_id, cell.column_index, cell.row_index);
   cells[key] = cell;
   localStorage.setItem(STORAGE_KEYS.CELLS, JSON.stringify(cells));
   return cell;

@@ -85,12 +85,14 @@ export async function executeRun(
 
     // Execute cells in sequence (for simplicity)
     for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
-      for (const modelId of models) {
+      for (let columnIndex = 0; columnIndex < models.length; columnIndex++) {
+        const modelId = models[columnIndex];
         try {
           // Create cell in 'running' state
           const cell: Cell = {
             run_id: run.id,
             model_id: modelId,
+            column_index: columnIndex,
             row_index: rowIndex,
             status: 'running' as const,
             output_raw: '',

@@ -45,6 +45,7 @@ export interface Run {
 export interface Cell {
   run_id: string;
   model_id: string;
+  column_index: number; // Position in the selected models array (0-3), allows duplicate models
   row_index: number;
   status: CellStatus;
   output_raw: string;

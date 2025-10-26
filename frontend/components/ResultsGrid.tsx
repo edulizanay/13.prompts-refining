@@ -116,8 +116,8 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
     setShowDialog(true);
   };
 
-  const getCellForRow = (rowIndex: number, modelId: string): Cell | undefined => {
-    return cells.find((c) => c.row_index === rowIndex && c.model_id === modelId);
+  const getCellForRow = (rowIndex: number, columnIndex: number): Cell | undefined => {
+    return cells.find((c) => c.row_index === rowIndex && c.column_index === columnIndex);
   };
 
   if (!mounted) return null;
@@ -135,8 +135,10 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
 
   return (
     <div className="space-y-4">
-      {/* Results Table */}
-      <div className="w-fit overflow-x-auto border border-neutral-200 rounded-lg">
+      {/* Table and Add Button Container */}
+      <div className="flex items-start gap-2">
+        {/* Results Table */}
+        <div className="w-fit overflow-x-auto border border-neutral-200 rounded-lg">
         {/* IMPORTANT: Cells must have fixed width to prevent layout shifts during content updates */}
         <table className="text-sm table-fixed">
         {/* Header */}
@@ -149,7 +151,7 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
             {modelIds.map((modelId, index) => {
               const model = getModelById(modelId);
               return (
-                <th key={modelId} className="px-[15px] py-2 text-left font-semibold text-neutral-700 w-[310px] text-[0.8em]">
+                <th key={`col-${index}`} className="px-[15px] py-2 text-left font-semibold text-neutral-700 w-[310px] text-[0.8em]">
                   <div className="group flex items-center justify-between">
                     <button
                       onClick={() => handleEditModel(index)}
@@ -171,19 +173,6 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
                 </th>
               );
             })}
-
-            {/* Add model column - only show if less than MAX_MODELS */}
-            {modelIds.length < MAX_MODELS && (
-              <th className="px-[15px] py-2 text-left font-semibold text-neutral-700 w-[310px] text-[0.8em]">
-                <button
-                  onClick={handleOpenAddDialog}
-                  className="text-neutral-400 hover:text-purple-500 transition-colors text-2xl leading-none"
-                  title="Add model"
-                >
-                  +
-                </button>
-              </th>
-            )}
           </tr>
         </thead>
 
@@ -197,10 +186,10 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
               </td>
 
               {/* Model cells - FIXED WIDTH (w-[310px] = 3% narrower than original 320px, DO NOT CHANGE to prevent layout shifts) */}
-              {modelIds.map((modelId) => {
-                const cell = getCellForRow(rowIndex, modelId);
+              {modelIds.map((_modelId, columnIndex) => {
+                const cell = getCellForRow(rowIndex, columnIndex);
                 return (
-                  <td key={`${rowIndex}-${modelId}`} className="px-[15px] py-2 w-[310px]">
+                  <td key={`${rowIndex}-${columnIndex}`} className="px-[15px] py-2 w-[310px]">
                     {cell ? (
                       <ResultCellView
                         cell={cell}
@@ -213,7 +202,7 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
                           setCells((prevCells) =>
                             prevCells.map((c) =>
                               c.run_id === updatedCell.run_id &&
-                              c.model_id === updatedCell.model_id &&
+                              c.column_index === updatedCell.column_index &&
                               c.row_index === updatedCell.row_index
                                 ? updatedCell
                                 : c
@@ -227,34 +216,33 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
                   </td>
                 );
               })}
-
-              {/* Empty cell for add column */}
-              {modelIds.length < MAX_MODELS && (
-                <td className="px-[15px] py-2 w-[310px]">
-                  <div className="text-xs text-neutral-400">—</div>
-                </td>
-              )}
             </tr>
           ))}
 
           {/* Summary Row - FIXED WIDTH (must match header/body cells, DO NOT CHANGE) */}
           <tr className="bg-purple-50 border-t-2 border-neutral-300 font-semibold">
             <td className="px-[15px] py-2 text-neutral-900 bg-neutral-100 w-14">Avg</td>
-            {modelIds.map((modelId) => (
-              <td key={`summary-${modelId}`} className="px-[15px] py-2 w-[310px]">
-                <SummaryCell cells={cells} modelId={modelId} metricView={metricView} />
+            {modelIds.map((_modelId, columnIndex) => (
+              <td key={`summary-${columnIndex}`} className="px-[15px] py-2 w-[310px]">
+                <SummaryCell cells={cells} columnIndex={columnIndex} metricView={metricView} />
               </td>
             ))}
-            {/* Empty cell for add column */}
-            {modelIds.length < MAX_MODELS && (
-              <td className="px-[15px] py-2 w-[310px]">
-                <div className="text-xs text-neutral-400">—</div>
-              </td>
-            )}
           </tr>
         </tbody>
       </table>
         </div>
+
+        {/* Add Model Button - outside table */}
+        {modelIds.length < MAX_MODELS && (
+          <button
+            onClick={handleOpenAddDialog}
+            className="flex-shrink-0 w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-purple-500 hover:bg-purple-50 border-2 border-dashed border-neutral-300 hover:border-purple-300 rounded-lg transition-all"
+            title="Add model"
+          >
+            <span className="text-2xl leading-none">+</span>
+          </button>
+        )}
+      </div>
 
       {/* Expand Modal */}
       <Modal
@@ -676,14 +664,14 @@ function MetricBadge({ cell, metricView, showGraderOverlay, onToggleGrader, isEr
  */
 interface SummaryCellProps {
   cells: Cell[];
-  modelId: string;
+  columnIndex: number;
   metricView: 'grade' | 'tokens' | 'cost' | 'latency';
 }
 
-function SummaryCell({ cells, modelId, metricView }: SummaryCellProps) {
-  // Filter cells for this model, excluding errors and malformed
+function SummaryCell({ cells, columnIndex, metricView }: SummaryCellProps) {
+  // Filter cells for this column, excluding errors and malformed
   const validCells = cells.filter(
-    (c) => c.model_id === modelId && c.status === 'ok'
+    (c) => c.column_index === columnIndex && c.status === 'ok'
   );
 
   if (validCells.length === 0) {
