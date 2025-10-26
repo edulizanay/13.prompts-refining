@@ -4,7 +4,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useImperativeHandle, useCallback, forwardRef } from 'react';
-import { ArrowLeftIcon, ArrowRightIcon, MoreHorizontalIcon, PlusIcon } from 'lucide-react';
+import { MoreHorizontalIcon, PlusIcon } from 'lucide-react';
 import { Prompt } from '@/lib/types';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
@@ -113,7 +113,6 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
     if (updated) {
       setCurrentPrompt(updated);
       setPrompts(getAllPrompts());
-      textIsChangedRef.current = false;
       console.log('[EditorPanel] Save successful');
     }
   }, [currentPrompt]);
@@ -127,7 +126,6 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
         const updated = updatePrompt(currentPrompt.id, { text: currentPrompt.text });
         if (updated) {
           setPrompts(getAllPrompts());
-          textIsChangedRef.current = false;
           console.log('[EditorPanel] Save successful');
         }
       }
@@ -197,25 +195,13 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
     try {
       setIsRunning(true);
 
-      // Increment version counter only if text was edited since last run
-      let updatedPrompt = currentPrompt;
-      if (textIsChangedRef.current) {
-        updatedPrompt = updatePrompt(currentPrompt.id, {
-          version_counter: currentPrompt.version_counter + 1,
-        }) || currentPrompt;
-        if (!updatedPrompt) {
-          setErrorDialog('Failed to update prompt');
-          setIsRunning(false);
-          return;
-        }
-        setCurrentPrompt(updatedPrompt);
-        textIsChangedRef.current = false;
-      }
-
       // Create run
-      const versionLabel = `${currentPrompt.type === 'generator' ? 'Generator' : 'Grader'} ${updatedPrompt.version_counter}`;
+      const versionLabel = `${currentPrompt.type === 'generator' ? 'Generator' : 'Grader'} ${currentPrompt.version_counter}`;
       const run = createRun(currentPrompt.id, versionLabel, selectedModelIds, selectedDatasetId, selectedGraderId);
       onActiveRunIdChange?.(run.id);
+
+      // Reset change tracking after run starts
+      textIsChangedRef.current = false;
 
       // Execute run
       await executeRun(run, dataset, () => {
@@ -334,7 +320,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
               className="flex-1 text-2xl font-bold text-neutral-900 cursor-pointer hover:text-purple-500 transition-colors"
               title="Click to rename"
             >
-              {currentPrompt.name} <span className="text-lg text-neutral-400">v{currentPrompt.version_counter}</span>
+              {currentPrompt.name}
             </h2>
           )}
 
@@ -396,29 +382,6 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
           </Button>
         </div>
       </div>
-
-      {/* Version Navigation Buttons */}
-      {/* TODO: Phase 2 - Version history backend integration */}
-      {/* These buttons will navigate through prompt versions once backend stores version snapshots */}
-      {/* Currently disabled since version history is not persisted */}
-      {currentPrompt.version_counter > 1 && (
-        <div className="flex gap-2 justify-end">
-          <button
-            disabled
-            className="p-2 rounded-md bg-transparent hover:bg-neutral-100 transition-colors cursor-not-allowed opacity-50"
-            aria-label="Go to previous version"
-          >
-            <ArrowLeftIcon size={20} className="text-neutral-600" />
-          </button>
-          <button
-            disabled
-            className="p-2 rounded-md bg-transparent hover:bg-neutral-100 transition-colors cursor-not-allowed opacity-50"
-            aria-label="Go to next version"
-          >
-            <ArrowRightIcon size={20} className="text-neutral-600" />
-          </button>
-        </div>
-      )}
 
       {/* Variables */}
       {placeholders.length > 0 && (

@@ -11,11 +11,11 @@ Scope: single-user UI that edits/runs **prompts** (generators) and **graders**, 
 
 * Framework: **Next.js (App Router)**, **React 18**
 * Styling: **Tailwind**, custom palette (background `#FAFAFA`, accents `#8685ef`, `#faf8ff`, `#dedbee`)
-* Components: **shadcn/ui** (Button, Dialog/Sheet, Dropdown, Input, Table, Badge, Tooltip)
-* Markdown: `react-markdown` (render), simple `<textarea>` (edit)
-* Keyboard: `CMD + Enter` triggers **Run**
+* Components: **shadcn/ui** (Button, Modal, Dropdown, Badge, Spinner, Kbd)
+* Editor: **CodeMirror** via `@uiw/react-codemirror` with custom theme, line numbers, syntax highlighting for `{{variables}}`, `<tags>`, "json" keyword, indentation-based folding, and Ctrl+Shift+Z wrap toggle
+* Keyboard: `CMD/Ctrl + Enter` triggers **Run**
 * Theme: single light theme (creamy background)
-* Realtime (later): Supabase Realtime; for v1 UI-first, mock/local store
+* Realtime (later): Supabase Realtime; for v1 UI-first, mock/local store with 500ms polling
 
 ## Core Concepts
 
@@ -315,32 +315,49 @@ Tables (representative columns only):
 
 1. **Editor & Autosave**
 
-   * Typing + blur persists content
-   * Version number increments **only on run**
+   * CodeMirror editor with syntax highlighting (`{{variables}}`, `<tags>`, "json")
+   * Blur, prompt switch, or pre-run persists content
+   * Version number increments **only on run** (and only if text changed since last run)
+   * Inline rename resets version to 1
 2. **Run Validation**
 
-   * Missing placeholders → blocked with message
+   * Missing placeholders → blocked with modal error dialog
+   * Dataset optional when prompt has no placeholders
    * Extra dataset columns → allowed
 3. **Results Grid**
 
-   * Columns add/remove
-   * Cell double-click expands
-   * View toggle switches metrics & summary row
+   * Columns add/remove/edit (max 4 models)
+   * **Cell single-click expands** full output in modal
+   * Metric cycling button switches metrics & summary row
    * Tokens show `in | out`
+   * Model editing clears stale cells; removal shifts indices
 4. **Grader Overlay**
 
-   * Color badge shows (Yes/No/score mapping)
-   * Click → full grader output; click away → revert
-5. **Re-run Cell**
+   * Color badge shows (0.0=red, 1.0=green, gradient between)
+   * Click badge → full grader output shown in cell; mouse leave → revert
+5. **Manual Grading**
 
-   * Bypasses cache; cell updates
-6. **History**
+   * When no grader selected, thumbs up/down appears in grade view
+   * Click to cycle: null → green (1.0) → red (0.0) → green
+   * Manual grades override auto-grades in summary
+6. **Re-run Cell**
 
-   * Run appears with `<name> - <counter>`
-   * Open past run restores table view
-7. **Error Display**
+   * Hover during active run shows re-run button
+   * Bypasses cache; cell updates (not available for historical runs)
+7. **View Modes**
 
-   * Raw provider error shown in tooltip (red)
+   * Focus mode (65% left / 35% right) triggers on editor focus
+   * Balanced mode (30% left / 70% right) triggers on editor blur or Run click
+   * 300ms spring animation between modes
+   * View mode persisted to localStorage
+8. **First-Load Behavior**
+
+   * Seeds data, deduplicates models, auto-selects first model
+   * Grid not empty on first load
+9. **Error Display**
+
+   * Cell shows white background with red border
+   * Error message displayed in cell; full details in expand modal
 
 ## Backend (Integration + Unit)
 
