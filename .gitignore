@@ -36,3 +36,6 @@ yarn-error.log*
 *.swo
 *~
 frontend/tsconfig.tsbuildinfo
+
+*storybook.log
+storybook-static
