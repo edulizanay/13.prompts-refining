@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { EditorView, Decoration, ViewPlugin, DecorationSet, ViewUpdate } from '@codemirror/view';
-import { EditorState, Range, StateEffect, StateField } from '@codemirror/state';
+import { EditorState, Range } from '@codemirror/state';
 import { keymap } from '@codemirror/view';
 import { foldService } from '@codemirror/language';
 import { colors } from '@/tailwind.config';
