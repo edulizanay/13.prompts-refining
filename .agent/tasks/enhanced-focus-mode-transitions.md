@@ -20,7 +20,6 @@ Transform the compact mode toggle into a smart, auto-triggered system with impro
 - Auto-triggered based on user actions
 - Improved dimensions: 65% editor (results hidden) vs 30% editor / 70% results
 - Enhanced transitions: spring easing, slide, fade, scale
-- Keyboard shortcut: `Cmd/Ctrl + S`
 
 ---
 
@@ -46,10 +45,6 @@ Transform the compact mode toggle into a smart, auto-triggered system with impro
 
 **Exit to Balanced Mode (30/70 split):**
 - User clicks "Run" button
-
-**Manual Override:**
-- `Cmd/Ctrl + S` toggles: `focus ↔ balanced`
-- Prevent default browser save behavior
 
 ### 3. Enhanced Transitions
 
@@ -115,21 +110,7 @@ Transform the compact mode toggle into a smart, auto-triggered system with impro
 - Only switch modes if not already in target mode (avoid unnecessary re-renders)
 - Ensure handlers are memoized to prevent prop changes
 
-### Phase 3: Keyboard Shortcut (`page.tsx`)
-
-**Objective:** Add Cmd/Ctrl + S toggle
-
-**Tasks:**
-1. Add keyboard event listener for Cmd/Ctrl + S
-2. Prevent browser's default save behavior
-3. Toggle between focus and balanced modes
-4. Clean up event listener on unmount
-
-**Key Considerations:**
-- Detect Mac vs Windows/Linux for correct modifier key (metaKey vs ctrlKey)
-- Use existing keyboard shortcut pattern from Cmd+Enter implementation
-
-### Phase 4: EditorPanel Updates
+### Phase 3: EditorPanel Updates
 
 **Objective:** Remove manual toggle, add event callbacks
 
@@ -144,7 +125,7 @@ Transform the compact mode toggle into a smart, auto-triggered system with impro
 - Maintain all existing run button functionality
 - Ensure callbacks are optional (use `?.()` syntax)
 
-### Phase 5: PromptEditor Focus Detection
+### Phase 4: PromptEditor Focus Detection
 
 **Objective:** Detect when user clicks into editor
 
@@ -157,24 +138,27 @@ Transform the compact mode toggle into a smart, auto-triggered system with impro
 - Check CodeMirror documentation for correct event prop name
 - May need to use `domEventHandlers` or similar CodeMirror API
 
-### Phase 6: Enhanced Transitions (CSS)
+### Phase 5: Enhanced Transitions
 
-**Objective:** Add spring-based animations
+**Objective:** Add spring-based animations using existing Tailwind config
 
 **Tasks:**
-1. Add spring easing keyframe animation for slide-in effect
-2. Create transition utility classes with cubic-bezier timing
+1. Add spring easing to `tailwind.config.ts` → `transitionTimingFunction`:
+   - `'spring': 'cubic-bezier(0.34, 1.56, 0.64, 1)'`
+2. Add slide-in keyframe animation to `globals.css`
+3. Use existing `duration-comfortable` (300ms) from Tailwind config
 
 **Key Specifications:**
-- Cubic-bezier: `(0.34, 1.56, 0.64, 1)` for spring effect
+- Spring easing: `cubic-bezier(0.34, 1.56, 0.64, 1)`
 - Slide animation: translateX(100%) → 0, scale(0.95 → 1.0), opacity(0 → 1)
-- Duration: 300ms
+- Duration: Use Tailwind's `duration-comfortable` (already 300ms)
 
 **Key Considerations:**
+- Centralize timing values in Tailwind config (avoid duplication)
 - Keep animations subtle and professional
 - Consider reduced motion preferences
 
-### Phase 7: Apply Transitions (Components)
+### Phase 6: Apply Transitions (Components)
 
 **Objective:** Apply animation classes to components
 
@@ -186,7 +170,7 @@ Transform the compact mode toggle into a smart, auto-triggered system with impro
 - May need to track mount state or use animation keys
 - Test that animations don't interfere with polling updates
 
-### Phase 8: Transition Lock
+### Phase 7: Transition Lock
 
 **Objective:** Prevent rapid mode switching during animations
 
@@ -208,7 +192,6 @@ Transform the compact mode toggle into a smart, auto-triggered system with impro
 1. ✅ `frontend/app/page.tsx`
    - State management (viewMode)
    - Auto-trigger logic
-   - Keyboard shortcut
    - Width calculations
    - Transition classes
 
@@ -221,9 +204,11 @@ Transform the compact mode toggle into a smart, auto-triggered system with impro
    - Add onFocus event handler
    - Forward to parent
 
-4. ✅ `frontend/styles/globals.css`
-   - Spring easing keyframes
-   - Slide-in animation
+4. ✅ `frontend/tailwind.config.ts`
+   - Add `'spring'` to `transitionTimingFunction`
+
+5. ✅ `frontend/styles/globals.css`
+   - Slide-in keyframe animation
 
 ---
 
@@ -232,9 +217,6 @@ Transform the compact mode toggle into a smart, auto-triggered system with impro
 ### Functional Tests
 - [ ] Focus mode triggers when clicking into editor
 - [ ] Balanced mode restores when clicking Run
-- [ ] `Cmd + S` (Mac) toggles between focus and balanced
-- [ ] `Ctrl + S` (Windows/Linux) toggles between focus and balanced
-- [ ] Browser save dialog does NOT appear on Cmd/Ctrl + S
 - [ ] View preference persists in localStorage
 - [ ] View preference loads correctly on page refresh
 
@@ -260,8 +242,6 @@ Transform the compact mode toggle into a smart, auto-triggered system with impro
 - [ ] Chrome/Edge (Chromium)
 - [ ] Safari
 - [ ] Firefox
-- [ ] Mac OS keyboard shortcuts (Cmd)
-- [ ] Windows/Linux keyboard shortcuts (Ctrl)
 
 ---
 
@@ -270,13 +250,13 @@ Transform the compact mode toggle into a smart, auto-triggered system with impro
 1. **Auto-trigger works:** Users don't need to manually toggle focus mode
 2. **Smooth transitions:** 300ms spring animation feels natural
 3. **No bugs:** Layout stable during all state changes
-4. **Keyboard accessible:** Power users can toggle with Cmd/Ctrl + S
-5. **Persistent:** View preference survives page refresh
+4. **Persistent:** View preference survives page refresh
 
 ---
 
 ## Future Enhancements (Out of Scope)
 
+- Keyboard shortcut: Cmd/Ctrl + S to toggle between modes
 - Three-state system: focus / balanced / results (35% / 65%)
 - Draggable panel divider for manual resize
 - Peek strip in focus mode showing live metrics
@@ -301,14 +281,11 @@ Transform the compact mode toggle into a smart, auto-triggered system with impro
 1. **Visual indicator in focus mode?**
    → No visual indicator needed. The absence of results panel is clear enough.
 
-2. **Escape key to exit focus mode?**
-   → No. Reserve Escape for modal/overlay dismissal. Use Cmd/Ctrl + S for toggle.
+2. **Keyboard shortcut to toggle?**
+   → Not in this iteration. Keep it simple with auto-triggers only.
 
 3. **Animate editor width or snap instantly?**
    → Animate with spring easing. Apply `transition-spring` class to editor panel.
 
 4. **Stagger result cards?**
    → Removed from scope. Adds complexity without significant UX benefit.
-
-5. **Tooltip for Cmd/Ctrl + S shortcut?**
-   → Not required. Power users will discover it naturally. Could add to docs later.
