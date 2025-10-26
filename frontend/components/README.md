@@ -6,7 +6,7 @@ React components for the UI. Keep components focused and composable.
 
 **EditorPanel.tsx**
 - Container for entire left panel
-- Contains: PromptHeader, ExpectedOutputSelector, PromptEditor, VariableChips, DatasetSelector, GraderSelector, ModelManager, RunButton
+- Contains: PromptHeader, ExpectedOutputSelector, PromptEditor, VariableChips, DatasetSelector, GraderSelector, RunButton
 - Orchestrates editor interactions
 
 **PromptHeader.tsx**
@@ -36,11 +36,6 @@ React components for the UI. Keep components focused and composable.
 - Dropdown filtered to type='grader' prompts
 - Nullable ("No grader" option)
 
-**ModelManager.tsx**
-- Add/remove model columns
-- Wraps `ModelSelector` and renders `ModelColumn` headers
-- Configurable cap (e.g., 4 models)
-
 **RunButton.tsx**
 - Primary button **"Run"** with shadcn loading state
 - Disabled if no models **OR** if `activeRunId` set
@@ -49,8 +44,11 @@ React components for the UI. Keep components focused and composable.
 ### Right Panel Components
 
 **ResultsGrid.tsx**
-- Table with model columns as headers
+- Table with model columns as headers (click to edit, hover × to remove)
+- "+" header cell to add models (max 4)
 - Rows = dataset rows (or 1 for live)
+- Renders even when run is null (shows "No data" in cells)
+- Internally manages model selection with embedded dialog
 - Internally contains: **ParsedFullToggle (global)**, MetricToggle, ResultCell components, SummaryRow
 - Accepts `isHistorical` prop to disable interactions
 
