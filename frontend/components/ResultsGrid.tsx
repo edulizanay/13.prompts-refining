@@ -39,11 +39,11 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
   }, [run.id]);
 
   if (modelIds.length === 0) {
-    return <div className="text-sm text-gray-500">No models selected</div>;
+    return <div className="text-sm text-neutral-500">No models selected</div>;
   }
 
   if (rowCount === 0) {
-    return <div className="text-sm text-gray-500">No data rows</div>;
+    return <div className="text-sm text-neutral-500">No data rows</div>;
   }
 
   const getCellForRow = (rowIndex: number, modelId: string): Cell | undefined => {
@@ -53,20 +53,20 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
   return (
     <div className="space-y-4">
       {/* Results Table */}
-      <div className="w-fit overflow-x-auto border border-gray-200 rounded-lg">
+      <div className="w-fit overflow-x-auto border border-neutral-200 rounded-lg">
         {/* IMPORTANT: Cells must have fixed width to prevent layout shifts during content updates */}
         <table className="text-sm table-fixed">
         {/* Header */}
         <thead>
-          <tr className="bg-gray-50 border-b border-gray-200">
+          <tr className="bg-neutral-50 border-b border-neutral-200">
             {/* Row index header - FIXED WIDTH (w-14 = 56px, 10% narrower than original 64px, DO NOT CHANGE) */}
-            <th className="px-[15px] py-2 text-left font-semibold text-gray-700 w-14">Row</th>
+            <th className="px-[15px] py-2 text-left font-semibold text-neutral-700 w-14">Row</th>
 
             {/* Model columns - FIXED WIDTH (w-[310px] = 3% narrower than original 320px, DO NOT CHANGE to prevent layout shifts) */}
             {modelIds.map((modelId) => {
               const model = getModelById(modelId);
               return (
-                <th key={modelId} className="px-[15px] py-2 text-left font-semibold text-gray-700 w-[310px] text-[0.8em]">
+                <th key={modelId} className="px-[15px] py-2 text-left font-semibold text-neutral-700 w-[310px] text-[0.8em]">
                   {model ? `${model.provider} / ${model.model}` : 'Unknown Model'}
                 </th>
               );
@@ -77,9 +77,9 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
         {/* Body */}
         <tbody>
           {Array.from({ length: rowCount }).map((_, rowIndex) => (
-            <tr key={rowIndex} className="border-b border-gray-200 hover:bg-gray-50">
+            <tr key={rowIndex} className="border-b border-neutral-200 hover:bg-neutral-50">
               {/* Row index cell - FIXED WIDTH (w-14 = 56px, 10% narrower than original 64px, DO NOT CHANGE) */}
-              <td className="px-[15px] py-2 text-gray-600 font-medium bg-gray-50 w-14">
+              <td className="px-[15px] py-2 text-neutral-600 font-medium bg-neutral-50 w-14">
                 {rowIndex + 1}
               </td>
 
@@ -109,7 +109,7 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
                         }}
                       />
                     ) : (
-                      <div className="text-xs text-gray-400">No data</div>
+                      <div className="text-xs text-neutral-400">No data</div>
                     )}
                   </td>
                 );
@@ -118,8 +118,8 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
           ))}
 
           {/* Summary Row - FIXED WIDTH (must match header/body cells, DO NOT CHANGE) */}
-          <tr className="bg-accent-light border-t-2 border-gray-300 font-semibold">
-            <td className="px-[15px] py-2 text-gray-900 bg-gray-100 w-14">Avg</td>
+          <tr className="bg-purple-50 border-t-2 border-neutral-300 font-semibold">
+            <td className="px-[15px] py-2 text-neutral-900 bg-neutral-100 w-14">Avg</td>
             {modelIds.map((modelId) => (
               <td key={`summary-${modelId}`} className="px-[15px] py-2 w-[310px]">
                 <SummaryCell cells={cells} modelId={modelId} metricView={metricView} />
@@ -201,11 +201,11 @@ function ResultCellView({ cell, showParsedOnly, metricView, onExpandClick, isAct
 
   if (isLoading) {
     return (
-      <div className="p-3 bg-gray-50 rounded-md border border-gray-200 min-h-[100px] flex items-center justify-center">
+      <div className="p-3 bg-neutral-50 rounded-md border border-neutral-200 min-h-[100px] flex items-center justify-center">
         <div className="space-y-2 w-full">
-          <div className="h-4 bg-gray-200 rounded animate-pulse" />
-          <div className="h-4 bg-gray-200 rounded animate-pulse w-5/6" />
-          <div className="h-4 bg-gray-200 rounded animate-pulse w-4/6" />
+          <div className="h-4 bg-neutral-200 rounded animate-pulse" />
+          <div className="h-4 bg-neutral-200 rounded animate-pulse w-5/6" />
+          <div className="h-4 bg-neutral-200 rounded animate-pulse w-4/6" />
         </div>
       </div>
     );
@@ -244,13 +244,13 @@ function ResultCellView({ cell, showParsedOnly, metricView, onExpandClick, isAct
       <div
         className={`p-3 rounded-md border min-h-[100px] overflow-hidden cursor-pointer hover:shadow-md transition-shadow ${
           isError
-            ? 'bg-white border-2 border-red-600'
+            ? 'bg-white border-2 border-error-600'
             : isMalformed
-              ? 'bg-yellow-50 border-yellow-200'
-              : 'bg-white border-gray-200'
+              ? 'bg-warning-50 border-warning-200'
+              : 'bg-white border-neutral-200'
         }`}
       >
-        <div className="text-xs text-gray-700 font-mono break-words whitespace-pre-wrap">
+        <div className="text-xs text-neutral-700 font-mono break-words whitespace-pre-wrap">
           {truncatedText}
         </div>
       </div>
@@ -279,10 +279,10 @@ function ResultCellView({ cell, showParsedOnly, metricView, onExpandClick, isAct
               e.stopPropagation();
               handleRerun();
             }}
-            className="pointer-events-auto p-2 bg-white rounded-md shadow-md hover:bg-gray-50 transition-colors"
+            className="pointer-events-auto p-2 bg-white rounded-md shadow-md hover:bg-neutral-50 transition-colors"
             title="Re-run this cell"
           >
-            <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-neutral-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
           </button>
@@ -324,43 +324,43 @@ function CellExpandModalContent({ cell, showParsedOnly }: CellExpandModalContent
         <div
           className={`p-4 rounded-md border font-mono text-sm whitespace-pre-wrap break-words ${
             isError
-              ? 'bg-red-50 border-red-200 text-red-700'
+              ? 'bg-error-50 border-error-200 text-error-700'
               : isMalformed
-                ? 'bg-yellow-50 border-yellow-200 text-yellow-700'
-                : 'bg-gray-50 border-gray-200 text-gray-900'
+                ? 'bg-warning-50 border-warning-200 text-warning-700'
+                : 'bg-neutral-50 border-neutral-200 text-neutral-900'
           }`}
         >
           {displayText}
         </div>
 
         {/* Metadata */}
-        <div className="mt-6 grid grid-cols-2 gap-4 border-t border-gray-200 pt-4">
+        <div className="mt-6 grid grid-cols-2 gap-4 border-t border-neutral-200 pt-4">
           <div>
-            <p className="text-xs text-gray-500 uppercase font-medium">Tokens</p>
-            <p className="text-sm font-mono text-gray-900">
+            <p className="text-xs text-neutral-500 uppercase font-medium">Tokens</p>
+            <p className="text-sm font-mono text-neutral-900">
               {formatTokens(cell.tokens_in, cell.tokens_out)}
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 uppercase font-medium">Cost</p>
-            <p className="text-sm font-mono text-gray-900">{formatCost(cell.cost)}</p>
+            <p className="text-xs text-neutral-500 uppercase font-medium">Cost</p>
+            <p className="text-sm font-mono text-neutral-900">{formatCost(cell.cost)}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 uppercase font-medium">Latency</p>
-            <p className="text-sm font-mono text-gray-900">{formatLatency(cell.latency_ms)}</p>
+            <p className="text-xs text-neutral-500 uppercase font-medium">Latency</p>
+            <p className="text-sm font-mono text-neutral-900">{formatLatency(cell.latency_ms)}</p>
           </div>
           {cell.graded_value !== null && (
             <div>
-              <p className="text-xs text-gray-500 uppercase font-medium">Grade</p>
-              <p className="text-sm font-mono text-gray-900">{formatGrade(cell.graded_value)}</p>
+              <p className="text-xs text-neutral-500 uppercase font-medium">Grade</p>
+              <p className="text-sm font-mono text-neutral-900">{formatGrade(cell.graded_value)}</p>
             </div>
           )}
         </div>
       </div>
 
       {/* Footer */}
-      <div className="p-6 border-t border-gray-200 bg-white">
-        <p className="text-xs text-gray-500 text-center">Press <kbd className="bg-gray-100 px-1 rounded text-xs">Esc</kbd> to close</p>
+      <div className="p-6 border-t border-neutral-200 bg-white">
+        <p className="text-xs text-neutral-500 text-center">Press <kbd className="bg-neutral-100 px-1 rounded text-xs">Esc</kbd> to close</p>
       </div>
     </>
   );
@@ -439,7 +439,7 @@ function MetricBadge({ cell, metricView, showGraderOverlay, onToggleGrader, isEr
         }}
         className={`flex items-center justify-center min-w-[63px] px-2 py-1.5 rounded-lg font-semibold text-[0.6125rem] leading-tight transition-all shadow-md border ${
           isNeutral
-            ? 'bg-purple-50 text-primary border-purple-200 hover:bg-purple-100 hover:border-primary'
+            ? 'bg-purple-50 text-purple-500 border-purple-200 hover:bg-purple-100 hover:border-purple-500'
             : `${styles.bgClass} ${styles.textClass} border ${styles.borderClass}`
         }`}
         title="Click to toggle pass/fail"
@@ -489,7 +489,7 @@ function SummaryCell({ cells, modelId, metricView }: SummaryCellProps) {
   );
 
   if (validCells.length === 0) {
-    return <div className="text-xs text-gray-400">—</div>;
+    return <div className="text-xs text-neutral-400">—</div>;
   }
 
   // Calculate averages
@@ -499,24 +499,24 @@ function SummaryCell({ cells, modelId, metricView }: SummaryCellProps) {
       const grade = c.manual_grade !== null ? c.manual_grade : (c.graded_value ?? 0);
       return sum + grade;
     }, 0) / validCells.length;
-    return <div className="text-xs font-medium text-gray-900 text-right">{formatGrade(avg)}</div>;
+    return <div className="text-xs font-medium text-neutral-900 text-right">{formatGrade(avg)}</div>;
   }
 
   if (metricView === 'tokens') {
     const avgIn = validCells.reduce((sum, c) => sum + c.tokens_in, 0) / validCells.length;
     const avgOut = validCells.reduce((sum, c) => sum + c.tokens_out, 0) / validCells.length;
-    return <div className="text-xs font-medium text-gray-900 text-right">{formatTokens(Math.round(avgIn), Math.round(avgOut))}</div>;
+    return <div className="text-xs font-medium text-neutral-900 text-right">{formatTokens(Math.round(avgIn), Math.round(avgOut))}</div>;
   }
 
   if (metricView === 'cost') {
     const avg = validCells.reduce((sum, c) => sum + c.cost, 0) / validCells.length;
-    return <div className="text-xs font-medium text-gray-900 text-right">{formatCost(avg)}</div>;
+    return <div className="text-xs font-medium text-neutral-900 text-right">{formatCost(avg)}</div>;
   }
 
   if (metricView === 'latency') {
     const avg = validCells.reduce((sum, c) => sum + c.latency_ms, 0) / validCells.length;
-    return <div className="text-xs font-medium text-gray-900 text-right">{formatLatency(Math.round(avg))}</div>;
+    return <div className="text-xs font-medium text-neutral-900 text-right">{formatLatency(Math.round(avg))}</div>;
   }
 
-  return <div className="text-xs text-gray-400 text-right">—</div>;
+  return <div className="text-xs text-neutral-400 text-right">—</div>;
 }

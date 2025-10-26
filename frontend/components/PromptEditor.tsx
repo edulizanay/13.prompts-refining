@@ -9,6 +9,7 @@ import { EditorView, Decoration, ViewPlugin, DecorationSet, ViewUpdate } from '@
 import { EditorState, Range } from '@codemirror/state';
 import { keymap } from '@codemirror/view';
 import { foldService } from '@codemirror/language';
+import { colors } from '@/tailwind.config';
 
 interface PromptEditorProps {
   value: string;
@@ -133,13 +134,13 @@ export function PromptEditor({ value, onChange, placeholder, onFocus, onBlur }: 
       fontSize: '0.875rem',
       fontFamily: "'Courier New', Courier, monospace",
       height: '50vh',
-      border: '1px solid #d1d5db',
+      border: `1px solid ${colors.neutral[300]}`,
       borderRadius: '0.375rem',
       backgroundColor: 'white',
     },
     '&.cm-focused': {
       outline: 'none',
-      boxShadow: '0 0 0 2px #8685ef',
+      boxShadow: `0 0 0 2px ${colors.purple[500]}`,
     },
     '.cm-scroller': {
       overflow: 'auto',
@@ -150,14 +151,14 @@ export function PromptEditor({ value, onChange, placeholder, onFocus, onBlur }: 
       fontFamily: "'Courier New', Courier, monospace",
     },
     '.cm-placeholder': {
-      color: '#9ca3af',
+      color: colors.neutral[400],
       fontFamily: "'Courier New', Courier, monospace",
     },
     // Line numbers styling
     '.cm-gutters': {
-      backgroundColor: '#fafafa',
-      borderRight: '1px solid #e5e7eb',
-      color: '#c4b5fd',
+      backgroundColor: colors.neutral[50],
+      borderRight: `1px solid ${colors.neutral[200]}`,
+      color: colors.neutral[400],
       paddingRight: '0.5rem',
       minWidth: '2.5rem',
     },
@@ -165,7 +166,7 @@ export function PromptEditor({ value, onChange, placeholder, onFocus, onBlur }: 
       minWidth: '2rem',
       textAlign: 'right',
       paddingRight: '0.5rem',
-      color: '#c4b5fd',
+      color: colors.neutral[400],
     },
     // Scrollbar styling - only visible on hover
     '.cm-scroller::-webkit-scrollbar': {
@@ -180,29 +181,29 @@ export function PromptEditor({ value, onChange, placeholder, onFocus, onBlur }: 
       borderRadius: '3px',
     },
     '.cm-scroller:hover::-webkit-scrollbar-thumb': {
-      background: '#d1d5db',
+      background: colors.neutral[300],
     },
     '.cm-scroller::-webkit-scrollbar-thumb:hover': {
-      background: '#9ca3af',
+      background: colors.neutral[400],
     },
     // Syntax highlighting styles
     '.cm-prompt-variable': {
-      color: '#8685ef',
+      color: colors.purple[500],
       fontWeight: '700',
-      background: '#faf8ff',
+      background: colors.purple[50],
       borderRadius: '2px',
       padding: '0 2px',
     },
     '.cm-prompt-tag': {
-      color: '#8685ef',
+      color: colors.purple[500],
       fontWeight: '700',
-      background: '#faf8ff',
+      background: colors.purple[50],
       borderRadius: '2px',
       padding: '0 2px',
     },
     // Fold gutter styling
     '.cm-foldGutter': {
-      backgroundColor: '#fafafa',
+      backgroundColor: colors.neutral[50],
     },
     // Hide fold placeholder ([...])
     '.cm-foldPlaceholder': {

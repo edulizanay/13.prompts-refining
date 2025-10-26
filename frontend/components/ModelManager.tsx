@@ -102,20 +102,20 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
         {selectedModelEntries.map(({ model, index }) => (
           <div
             key={`${model.id}-${index}`}
-            className="group relative w-40 p-2 bg-white rounded-md border border-gray-200 hover:border-primary hover:shadow-sm transition-all cursor-pointer flex items-center justify-between"
+            className="group relative w-40 p-2 bg-white rounded-md border border-neutral-200 hover:border-purple-500 hover:shadow-sm transition-all cursor-pointer flex items-center justify-between"
             onClick={() => setShowDialog(true)}
             title="Click to change model"
           >
             <div className="flex-1">
-              <p className="text-xs font-medium text-gray-900 truncate">{model.provider}</p>
-              <p className="text-xs text-gray-500 truncate">{model.model}</p>
+              <p className="text-xs font-medium text-neutral-900 truncate">{model.provider}</p>
+              <p className="text-xs text-neutral-500 truncate">{model.model}</p>
             </div>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleRemoveModel(index);
                 }}
-              className="flex-shrink-0 ml-2 text-gray-400 group-hover:text-gray-400 font-bold transition-colors opacity-0 group-hover:opacity-100"
+              className="flex-shrink-0 ml-2 text-neutral-400 group-hover:text-neutral-400 font-bold transition-colors opacity-0 group-hover:opacity-100"
               title="Remove model"
             >
               ✕
@@ -127,7 +127,7 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
         <button
           onClick={() => setShowDialog(true)}
           disabled={selectedModelIds.length >= MAX_MODELS}
-          className="ml-4 text-2xl text-gray-400 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="ml-4 text-2xl text-neutral-400 hover:text-purple-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           title="Add model"
         >
           +
@@ -143,15 +143,15 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
         hasEscapeClose={true}
         className="p-6"
       >
-        <h3 className="text-lg font-bold text-gray-900 mb-4">Add Model</h3>
+        <h3 className="text-lg font-bold text-neutral-900 mb-4">Add Model</h3>
 
         <div className="space-y-4">
           {/* Provider selector */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Provider</label>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">Provider</label>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm text-left bg-white hover:bg-gray-50">
+                <button className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm text-left bg-white hover:bg-neutral-50">
                   {selectedProvider}
                 </button>
               </DropdownMenuTrigger>
@@ -175,10 +175,10 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
 
           {/* Model selector */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Model</label>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">Model</label>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm text-left bg-white hover:bg-gray-50">
+                <button className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm text-left bg-white hover:bg-neutral-50">
                   {selectedModel}
                 </button>
               </DropdownMenuTrigger>
@@ -197,12 +197,12 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
         <div className="flex gap-2 mt-6">
           <button
             onClick={handleAddModel}
-            className="w-full px-3 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 text-sm font-medium"
+            className="w-full px-3 py-2 bg-purple-500 text-white rounded-md hover:bg-opacity-90 text-sm font-medium"
           >
             Add
           </button>
         </div>
-        <p className="text-xs text-gray-500 mt-2 text-center">Press <kbd className="bg-gray-100 px-1 rounded text-xs">Esc</kbd> to cancel</p>
+        <p className="text-xs text-neutral-500 mt-2 text-center">Press <kbd className="bg-neutral-100 px-1 rounded text-xs">Esc</kbd> to cancel</p>
       </Modal>
 
       {/* Error Modal */}
@@ -212,12 +212,12 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
         size="small"
         className="p-6 space-y-4"
       >
-        <h3 className="text-lg font-semibold text-red-600">Error</h3>
-        <p className="text-sm text-gray-700">{errorDialog}</p>
+        <h3 className="text-lg font-semibold text-error-600">Error</h3>
+        <p className="text-sm text-neutral-700">{errorDialog}</p>
         <div className="flex justify-end">
           <button
             onClick={() => setErrorDialog(null)}
-            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 text-sm font-medium"
+            className="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-opacity-90 text-sm font-medium"
           >
             OK
           </button>

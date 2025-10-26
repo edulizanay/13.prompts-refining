@@ -179,7 +179,7 @@ export default function Home() {
   }
 
   return (
-    <div className="p-6 h-screen w-full bg-background flex flex-col">
+    <div className="p-6 h-screen w-full bg-neutral-50 flex flex-col">
       <div className="flex h-full gap-3 p-6">
         {/* Left Panel: Editor */}
         <div
@@ -215,10 +215,10 @@ export default function Home() {
               {/* Wrapper to constrain toolbar and table to same width */}
               <div className="w-fit max-w-full">
                 {/* Toolbar container with metric view carousel and upload button */}
-                <div className="flex gap-2 items-center bg-gray-50 p-3 rounded-lg border border-gray-200 mb-4">
+                <div className="flex gap-2 items-center bg-neutral-50 p-3 rounded-lg border border-neutral-200 mb-4">
                   <button
                     onClick={cycleMetricView}
-                    className={`px-3 py-1.5 text-xs font-medium bg-purple-50 text-primary border border-purple-200 rounded-full hover:bg-purple-100 hover:border-primary transition-all duration-150 min-w-[64px] ${
+                    className={`px-3 py-1.5 text-xs font-medium bg-purple-50 text-purple-500 border border-purple-200 rounded-full hover:bg-purple-100 hover:border-purple-500 transition-all duration-150 min-w-[64px] ${
                       metricFading ? 'opacity-0' : 'opacity-100'
                     }`}
                     style={{ transition: 'opacity 150ms ease-in-out' }}
@@ -230,7 +230,7 @@ export default function Home() {
                   <div className="ml-auto flex gap-2">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <button className="px-4 py-2 bg-purple-50 text-primary border border-purple-200 rounded-full hover:bg-purple-100 hover:border-primary transition-all duration-150 text-sm font-medium flex items-center gap-2">
+                        <button className="px-4 py-2 bg-purple-50 text-purple-500 border border-purple-200 rounded-full hover:bg-purple-100 hover:border-purple-500 transition-all duration-150 text-sm font-medium flex items-center gap-2">
                           {selectedGraderId ? (
                             <span>{prompts.find(p => p.id === selectedGraderId)?.name}</span>
                           ) : (
@@ -264,11 +264,11 @@ export default function Home() {
                     <button
                       onClick={() => fileInputRef.current?.click()}
                       disabled={uploadLoading}
-                      className="p-2 bg-purple-50 text-primary border border-purple-200 rounded-full hover:bg-purple-100 hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150"
+                      className="p-2 bg-purple-50 text-purple-500 border border-purple-200 rounded-full hover:bg-purple-100 hover:border-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150"
                       title="Upload Dataset"
                     >
                       {uploadLoading ? (
-                        <span className="inline-block w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
+                        <span className="inline-block w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></span>
                       ) : (
                         <FileUpIcon size={16} />
                       )}
@@ -281,8 +281,8 @@ export default function Home() {
                   <div
                     className={`p-3 rounded-lg text-sm mb-4 ${
                       uploadToast.type === 'success'
-                        ? 'bg-green-100 text-green-700 border border-green-200'
-                        : 'bg-red-100 text-red-700 border border-red-200'
+                        ? 'bg-success-50 text-success-600 border border-success-500'
+                        : 'bg-error-50 text-error-600 border border-error-500'
                     }`}
                   >
                     {uploadToast.message}
