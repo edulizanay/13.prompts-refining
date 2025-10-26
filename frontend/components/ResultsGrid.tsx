@@ -5,38 +5,115 @@
 
 import { useEffect, useState } from 'react';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
-import { Run, Cell, Dataset } from '@/lib/types';
+import { Run, Cell, Dataset, Model } from '@/lib/types';
 import { truncate, parseOutput, formatGrade, formatTokens, formatCost, formatLatency, gradeToStyles } from '@/lib/utils';
-import { getCellsByRunId, getModelById, upsertCell } from '@/lib/mockRepo.temp';
+import { getCellsByRunId, getModelById, upsertCell, getAllModels, createModel, getModelByProviderAndName } from '@/lib/mockRepo.temp';
 import { generateMockCell } from '@/lib/mockRunExecutor.temp';
 import { Modal } from '@/components/ui/modal';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface ResultsGridProps {
-  run: Run;
+  run: Run | null;
   dataset: Dataset | null;
   metricView: 'grade' | 'tokens' | 'cost' | 'latency';
   showParsedOnly: boolean;
   activeRunId: string | null;
   isHistoricalView?: boolean;
+  selectedModelIds: string[];
+  onModelsChange: (modelIds: string[]) => void;
 }
 
-export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRunId, isHistoricalView = false }: ResultsGridProps) {
+const MAX_MODELS = 4;
+
+export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRunId, isHistoricalView = false, selectedModelIds, onModelsChange }: ResultsGridProps) {
   const [cells, setCells] = useState<Cell[]>([]);
   const [, setUpdateTrigger] = useState(0);
   const [expandedCell, setExpandedCell] = useState<Cell | null>(null);
+  const [models, setModels] = useState<Model[]>([]);
+  const [showDialog, setShowDialog] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState('');
+  const [selectedModel, setSelectedModel] = useState('');
+  const [mounted, setMounted] = useState(false);
 
   const rowCount = dataset ? dataset.row_count : 1;
-  const modelIds = run.model_ids;
+  const modelIds = selectedModelIds;
 
-  // Poll for cell updates every 500ms
+  // Initialize models on mount
   useEffect(() => {
+    const allModels = getAllModels();
+    setModels(allModels);
+
+    // Initialize provider/model selectors
+    if (allModels.length > 0) {
+      const firstProvider = allModels[0].provider;
+      setSelectedProvider(firstProvider);
+      const firstModel = allModels.find(m => m.provider === firstProvider);
+      if (firstModel) {
+        setSelectedModel(firstModel.model);
+      }
+    }
+
+    setMounted(true);
+  }, []);
+
+  // Poll for cell updates every 500ms (only if run exists)
+  useEffect(() => {
+    if (!run) return;
+
     const pollInterval = setInterval(() => {
       setCells(getCellsByRunId(run.id));
       setUpdateTrigger((prev) => prev + 1);
     }, 500);
 
     return () => clearInterval(pollInterval);
-  }, [run.id]);
+  }, [run]);
+
+  // Model management functions
+  const handleAddModel = () => {
+    if (selectedModelIds.length >= MAX_MODELS) {
+      return;
+    }
+
+    let model = getModelByProviderAndName(selectedProvider, selectedModel);
+    if (!model) {
+      model = createModel(selectedProvider, selectedModel);
+    }
+    setModels(getAllModels());
+
+    if (editingIndex !== null) {
+      // Editing existing model
+      const newModelIds = [...selectedModelIds];
+      newModelIds[editingIndex] = model.id;
+      onModelsChange(newModelIds);
+      setEditingIndex(null);
+    } else {
+      // Adding new model
+      onModelsChange([...selectedModelIds, model.id]);
+    }
+    setShowDialog(false);
+  };
+
+  const handleRemoveModel = (index: number) => {
+    if (selectedModelIds.length <= 1) return; // Minimum 1 model
+    onModelsChange(selectedModelIds.filter((_, i) => i !== index));
+  };
+
+  const handleEditModel = (index: number) => {
+    setEditingIndex(index);
+    setShowDialog(true);
+  };
+
+  const handleOpenAddDialog = () => {
+    setEditingIndex(null);
+    setShowDialog(true);
+  };
+
+  const getCellForRow = (rowIndex: number, modelId: string): Cell | undefined => {
+    return cells.find((c) => c.row_index === rowIndex && c.model_id === modelId);
+  };
+
+  if (!mounted) return null;
 
   if (modelIds.length === 0) {
     return <div className="text-sm text-neutral-500">No models selected</div>;
@@ -46,9 +123,8 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
     return <div className="text-sm text-neutral-500">No data rows</div>;
   }
 
-  const getCellForRow = (rowIndex: number, modelId: string): Cell | undefined => {
-    return cells.find((c) => c.row_index === rowIndex && c.model_id === modelId);
-  };
+  const providers = Array.from(new Set(models.map((m) => m.provider)));
+  const modelsForProvider = models.filter((m) => m.provider === selectedProvider);
 
   return (
     <div className="space-y-4">
@@ -63,14 +139,44 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
             <th className="px-[15px] py-2 text-left font-semibold text-neutral-700 w-14">Row</th>
 
             {/* Model columns - FIXED WIDTH (w-[310px] = 3% narrower than original 320px, DO NOT CHANGE to prevent layout shifts) */}
-            {modelIds.map((modelId) => {
+            {modelIds.map((modelId, index) => {
               const model = getModelById(modelId);
               return (
                 <th key={modelId} className="px-[15px] py-2 text-left font-semibold text-neutral-700 w-[310px] text-[0.8em]">
-                  {model ? `${model.provider} / ${model.model}` : 'Unknown Model'}
+                  <div className="group flex items-center justify-between">
+                    <button
+                      onClick={() => handleEditModel(index)}
+                      className="flex-1 text-left hover:text-purple-500 transition-colors"
+                      title="Click to change model"
+                    >
+                      {model ? `${model.provider} / ${model.model}` : 'Unknown Model'}
+                    </button>
+                    {modelIds.length > 1 && (
+                      <button
+                        onClick={() => handleRemoveModel(index)}
+                        className="ml-2 text-neutral-400 hover:text-error-600 font-bold transition-colors opacity-0 group-hover:opacity-100"
+                        title="Remove model"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
                 </th>
               );
             })}
+
+            {/* Add model column - only show if less than MAX_MODELS */}
+            {modelIds.length < MAX_MODELS && (
+              <th className="px-[15px] py-2 text-left font-semibold text-neutral-700 w-[310px] text-[0.8em]">
+                <button
+                  onClick={handleOpenAddDialog}
+                  className="text-neutral-400 hover:text-purple-500 transition-colors text-2xl leading-none"
+                  title="Add model"
+                >
+                  +
+                </button>
+              </th>
+            )}
           </tr>
         </thead>
 
@@ -94,7 +200,7 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
                         showParsedOnly={showParsedOnly}
                         metricView={metricView}
                         onExpandClick={setExpandedCell}
-                        isActiveRun={activeRunId === run.id}
+                        isActiveRun={run !== null && activeRunId === run.id}
                         isHistoricalView={isHistoricalView}
                         onRerun={(updatedCell) => {
                           setCells((prevCells) =>
@@ -114,6 +220,13 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
                   </td>
                 );
               })}
+
+              {/* Empty cell for add column */}
+              {modelIds.length < MAX_MODELS && (
+                <td className="px-[15px] py-2 w-[310px]">
+                  <div className="text-xs text-neutral-400">—</div>
+                </td>
+              )}
             </tr>
           ))}
 
@@ -125,6 +238,12 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
                 <SummaryCell cells={cells} modelId={modelId} metricView={metricView} />
               </td>
             ))}
+            {/* Empty cell for add column */}
+            {modelIds.length < MAX_MODELS && (
+              <td className="px-[15px] py-2 w-[310px]">
+                <div className="text-xs text-neutral-400">—</div>
+              </td>
+            )}
           </tr>
         </tbody>
       </table>
@@ -146,6 +265,78 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
             onClose={() => setExpandedCell(null)}
           />
         )}
+      </Modal>
+
+      {/* Add/Edit Model Dialog */}
+      <Modal
+        isOpen={showDialog}
+        onClose={() => setShowDialog(false)}
+        size="small"
+        hasBackdropClose={true}
+        hasEscapeClose={true}
+        className="p-6"
+      >
+        <h3 className="text-lg font-bold text-neutral-900 mb-4">
+          {editingIndex !== null ? 'Edit Model' : 'Add Model'}
+        </h3>
+
+        <div className="space-y-4">
+          {/* Provider selector */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">Provider</label>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm text-left bg-white hover:bg-neutral-50">
+                  {selectedProvider}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="start">
+                {providers.map((p) => (
+                  <DropdownMenuItem
+                    key={p}
+                    onClick={() => {
+                      setSelectedProvider(p);
+                      const first = models.find((m) => m.provider === p);
+                      if (first) setSelectedModel(first.model);
+                    }}
+                  >
+                    {p}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Model selector */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">Model</label>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm text-left bg-white hover:bg-neutral-50">
+                  {selectedModel}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="start">
+                {modelsForProvider.map((m) => (
+                  <DropdownMenuItem key={m.model} onClick={() => setSelectedModel(m.model)}>
+                    {m.model}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {/* Dialog buttons */}
+        <div className="flex gap-2 mt-6">
+          <button
+            onClick={handleAddModel}
+            className="w-full px-3 py-2 bg-purple-500 text-white rounded-md hover:bg-opacity-90 text-sm font-medium"
+          >
+            {editingIndex !== null ? 'Save' : 'Add'}
+          </button>
+        </div>
+        <p className="text-xs text-neutral-500 mt-2 text-center">Press <kbd className="bg-neutral-100 px-1 rounded text-xs">Esc</kbd> to cancel</p>
       </Modal>
     </div>
   );

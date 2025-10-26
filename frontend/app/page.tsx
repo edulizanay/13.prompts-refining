@@ -6,11 +6,10 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { FileUpIcon, FlaskConicalIcon } from 'lucide-react';
 import type { Prompt, Run, Dataset } from '@/lib/types';
-import { initializeSeedData, getUIState, setActiveRunId, getRunById, getDatasetById, deduplicateModels, createDataset, getAllPrompts } from '@/lib/mockRepo.temp';
+import { initializeSeedData, getUIState, setActiveRunId, getRunById, getDatasetById, deduplicateModels, createDataset, getAllPrompts, getAllModels } from '@/lib/mockRepo.temp';
 import { parseDatasetFile } from '@/lib/utils';
 import { EditorPanel } from '@/components/EditorPanel';
 import { ResultsGrid } from '@/components/ResultsGrid';
-import { ModelManager } from '@/components/ModelManager';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 export default function Home() {
@@ -53,6 +52,12 @@ export default function Home() {
 
     // Load prompts
     setPrompts(getAllPrompts());
+
+    // Initialize with first model if none selected
+    const allModels = getAllModels();
+    if (allModels.length > 0 && selectedModelIds.length === 0) {
+      setSelectedModelIds([allModels[0].id]);
+    }
 
     setMounted(true);
   }, []);
@@ -206,11 +211,6 @@ export default function Home() {
           style={{ width: viewMode === 'focus' ? '35%' : '70%' }}
           className="overflow-y-auto flex flex-col px-6 transition-all duration-comfortable ease-spring"
         >
-            {/* Model Manager */}
-            <div className="mb-4">
-              <ModelManager selectedModelIds={selectedModelIds} onModelsChange={setSelectedModelIds} />
-            </div>
-
             <div className="space-y-4 flex-1">
               {/* Wrapper to constrain toolbar and table to same width */}
               <div className="w-fit max-w-full">
@@ -289,16 +289,17 @@ export default function Home() {
                   </div>
                 )}
 
-                {currentRun && (
-                  <ResultsGrid
-                    run={currentRun}
-                    dataset={currentDataset}
-                    metricView={metricView}
-                    showParsedOnly={showParsedOnly}
-                    activeRunId={activeRunId}
-                    isHistoricalView={false}
-                  />
-                )}
+                {/* Results Grid - always render, pass null run when no run exists */}
+                <ResultsGrid
+                  run={currentRun}
+                  dataset={currentDataset}
+                  metricView={metricView}
+                  showParsedOnly={showParsedOnly}
+                  activeRunId={activeRunId}
+                  isHistoricalView={false}
+                  selectedModelIds={selectedModelIds}
+                  onModelsChange={setSelectedModelIds}
+                />
               </div>
             </div>
         </div>
