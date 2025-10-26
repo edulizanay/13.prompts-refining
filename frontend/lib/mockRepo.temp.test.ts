@@ -16,6 +16,7 @@ import {
   getRunsByPromptId,
   deleteRun,
   getCell,
+  getCellsByRunId,
   upsertCell,
   getUIState,
   setUIState,
@@ -171,6 +172,7 @@ describe('mockRepo.temp', () => {
       const cell = {
         run_id: 'run1',
         model_id: 'model1',
+        column_index: 0,
         row_index: 0,
         status: 'ok' as const,
         output_raw: 'Hello',
@@ -186,8 +188,68 @@ describe('mockRepo.temp', () => {
         manual_grade: null,
       };
       upsertCell(cell);
-      const retrieved = getCell('run1', 'model1', 0);
+      const retrieved = getCell('run1', 0, 0);
       expect(retrieved?.output_raw).toBe('Hello');
+    });
+
+    it('handles duplicate models in different columns independently', () => {
+      // Create two cells with the same model_id but different column_index
+      const cell1 = {
+        run_id: 'run1',
+        model_id: 'model1',
+        column_index: 0,
+        row_index: 0,
+        status: 'ok' as const,
+        output_raw: 'Output from column 0',
+        output_parsed: 'Output from column 0',
+        tokens_in: 10,
+        tokens_out: 5,
+        cost: 0.01,
+        latency_ms: 100,
+        error_message: null,
+        graded_value: null,
+        grader_full_raw: null,
+        grader_parsed: null,
+        manual_grade: null,
+      };
+
+      const cell2 = {
+        run_id: 'run1',
+        model_id: 'model1',
+        column_index: 1,
+        row_index: 0,
+        status: 'ok' as const,
+        output_raw: 'Output from column 1',
+        output_parsed: 'Output from column 1',
+        tokens_in: 15,
+        tokens_out: 8,
+        cost: 0.02,
+        latency_ms: 150,
+        error_message: null,
+        graded_value: null,
+        grader_full_raw: null,
+        grader_parsed: null,
+        manual_grade: null,
+      };
+
+      upsertCell(cell1);
+      upsertCell(cell2);
+
+      // Verify both cells are returned by getCellsByRunId
+      const allCells = getCellsByRunId('run1');
+      expect(allCells).toHaveLength(2);
+
+      // Verify each cell can be retrieved independently by column_index
+      const retrievedCell1 = getCell('run1', 0, 0);
+      const retrievedCell2 = getCell('run1', 1, 0);
+
+      expect(retrievedCell1?.output_raw).toBe('Output from column 0');
+      expect(retrievedCell1?.tokens_in).toBe(10);
+      expect(retrievedCell1?.column_index).toBe(0);
+
+      expect(retrievedCell2?.output_raw).toBe('Output from column 1');
+      expect(retrievedCell2?.tokens_in).toBe(15);
+      expect(retrievedCell2?.column_index).toBe(1);
     });
   });
 
