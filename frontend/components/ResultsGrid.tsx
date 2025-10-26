@@ -100,6 +100,13 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
   };
 
   const handleEditModel = (index: number) => {
+    // Pre-populate dialog with current model's values
+    const currentModelId = selectedModelIds[index];
+    const currentModel = getModelById(currentModelId);
+    if (currentModel) {
+      setSelectedProvider(currentModel.provider);
+      setSelectedModel(currentModel.model);
+    }
     setEditingIndex(index);
     setShowDialog(true);
   };
