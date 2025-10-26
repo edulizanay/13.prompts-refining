@@ -210,7 +210,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
   const placeholders = currentPrompt ? extractPlaceholders(currentPrompt.text) : [];
 
   if (!mounted || !currentPrompt) {
-    return <div className="text-gray-500">Loading editor...</div>;
+    return <div className="text-neutral-500">Loading editor...</div>;
   }
 
   return (
@@ -224,7 +224,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
         hasEscapeClose={true}
         className="p-6 space-y-4"
       >
-        <h3 className="text-lg font-semibold text-gray-900">Create New Prompt</h3>
+        <h3 className="text-lg font-semibold text-neutral-900">Create New Prompt</h3>
         <input
           autoFocus
           type="text"
@@ -234,12 +234,12 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
           onKeyDown={(e) => {
             if (e.key === 'Enter') handleCreatePrompt();
           }}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+          className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
         />
         <select
           value={newPromptType}
           onChange={(e) => setNewPromptType(e.target.value as 'generator' | 'grader')}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+          className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
         >
           <option value="generator">Generator</option>
           <option value="grader">Grader</option>
@@ -247,13 +247,13 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
         <div className="flex gap-2 justify-end">
           <button
             onClick={() => setNewPromptDialog(false)}
-            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 text-sm font-medium"
+            className="px-4 py-2 text-neutral-700 border border-neutral-300 rounded-md hover:bg-neutral-50 text-sm font-medium"
           >
             Cancel
           </button>
           <button
             onClick={handleCreatePrompt}
-            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 text-sm font-medium"
+            className="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-opacity-90 text-sm font-medium"
           >
             Create
           </button>
@@ -267,12 +267,12 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
         size="small"
         className="p-6 space-y-4"
       >
-        <h3 className="text-lg font-semibold text-red-600">Error</h3>
-        <p className="text-sm text-gray-700">{errorDialog}</p>
+        <h3 className="text-lg font-semibold text-error-600">Error</h3>
+        <p className="text-sm text-neutral-700">{errorDialog}</p>
         <div className="flex justify-end">
           <button
             onClick={() => setErrorDialog(null)}
-            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90 text-sm font-medium"
+            className="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-opacity-90 text-sm font-medium"
           >
             OK
           </button>
@@ -296,27 +296,27 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
                   setRenameInput(currentPrompt.name);
                 }
               }}
-              className="flex-1 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+              className="flex-1 px-2 py-1 border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           ) : (
             <h2
               onClick={() => setIsRenamingPrompt(true)}
-              className="flex-1 text-2xl font-bold text-gray-900 cursor-pointer hover:text-primary transition-colors"
+              className="flex-1 text-2xl font-bold text-neutral-900 cursor-pointer hover:text-purple-500 transition-colors"
               title="Click to rename"
             >
-              {currentPrompt.name} <span className="text-lg text-gray-400">v{currentPrompt.version_counter}</span>
+              {currentPrompt.name} <span className="text-lg text-neutral-400">v{currentPrompt.version_counter}</span>
             </h2>
           )}
 
           {/* Prompt Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="p-2 rounded-md bg-transparent hover:bg-gray-100 transition-colors" aria-label="Prompt menu">
-                <MoreHorizontalIcon size={20} className="text-gray-600" />
+              <button className="p-2 rounded-md bg-transparent hover:bg-neutral-100 transition-colors" aria-label="Prompt menu">
+                <MoreHorizontalIcon size={20} className="text-neutral-600" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end">
-              <DropdownMenuLabel className="text-xs uppercase text-gray-500">Create</DropdownMenuLabel>
+              <DropdownMenuLabel className="text-xs uppercase text-neutral-500">Create</DropdownMenuLabel>
               <DropdownMenuItem onClick={() => setNewPromptDialog(true)}>
                 <PlusIcon size={16} className="mr-2" />
                 <span>New Prompt</span>
@@ -324,12 +324,12 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
 
               <DropdownMenuSeparator />
 
-              <DropdownMenuLabel className="text-xs uppercase text-gray-500">Prompts</DropdownMenuLabel>
+              <DropdownMenuLabel className="text-xs uppercase text-neutral-500">Prompts</DropdownMenuLabel>
               {prompts.map((p) => (
                 <DropdownMenuItem key={p.id} onClick={() => setSelectedId(p.id)}>
                   <div className="flex flex-col gap-0.5">
                     <span className="font-medium">{p.name}</span>
-                    <span className="text-xs text-gray-500">{p.type === 'generator' ? 'Generator' : 'Grader'}</span>
+                    <span className="text-xs text-neutral-500">{p.type === 'generator' ? 'Generator' : 'Grader'}</span>
                   </div>
                 </DropdownMenuItem>
               ))}
@@ -375,17 +375,17 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
         <div className="flex gap-2 justify-end">
           <button
             disabled
-            className="p-2 rounded-md bg-transparent hover:bg-gray-100 transition-colors cursor-not-allowed opacity-50"
+            className="p-2 rounded-md bg-transparent hover:bg-neutral-100 transition-colors cursor-not-allowed opacity-50"
             aria-label="Go to previous version"
           >
-            <ArrowLeftIcon size={20} className="text-gray-600" />
+            <ArrowLeftIcon size={20} className="text-neutral-600" />
           </button>
           <button
             disabled
-            className="p-2 rounded-md bg-transparent hover:bg-gray-100 transition-colors cursor-not-allowed opacity-50"
+            className="p-2 rounded-md bg-transparent hover:bg-neutral-100 transition-colors cursor-not-allowed opacity-50"
             aria-label="Go to next version"
           >
-            <ArrowRightIcon size={20} className="text-gray-600" />
+            <ArrowRightIcon size={20} className="text-neutral-600" />
           </button>
         </div>
       )}
@@ -393,7 +393,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
       {/* Variables */}
       {placeholders.length > 0 && (
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Variables</label>
+          <label className="block text-sm font-medium text-neutral-700">Variables</label>
           <div className="flex flex-wrap gap-2">
             {placeholders.map((p) => (
               <span

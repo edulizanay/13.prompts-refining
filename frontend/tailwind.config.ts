@@ -1,5 +1,49 @@
 import type { Config } from 'tailwindcss';
 
+// Extract colors for export (used in CodeMirror and other runtime contexts)
+const colors = {
+  // Neutral Foundation (Tailwind's neutral scale)
+  neutral: {
+    50: '#FAFAFA',
+    100: '#F5F5F5',
+    200: '#E5E5E5',
+    300: '#D4D4D4',
+    400: '#A3A3A3',
+    500: '#737373',
+    600: '#525252',
+    700: '#404040',
+    800: '#262626',
+    900: '#171717',
+  },
+
+  // Purple Accent Scale
+  purple: {
+    50: '#FAF8FF',
+    100: '#F3EFFF',
+    200: '#DEDBEE',
+    500: '#8685EF',
+    600: '#6B6AD4',
+    700: '#5251B0',
+  },
+
+  // Semantic Colors
+  success: {
+    50: '#F0FDF4',
+    500: '#22C55E',
+    600: '#16A34A',
+  },
+  warning: {
+    50: '#FFFBEB',
+    500: '#F59E0B',
+    600: '#D97706',
+  },
+  error: {
+    50: '#FEF2F2',
+    500: '#EF4444',
+    600: '#DC2626',
+  },
+};
+
 const config: Config = {
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
@@ -8,54 +52,7 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      colors: {
-        // Neutral Foundation (Tailwind's neutral scale)
-        neutral: {
-          50: '#FAFAFA',
-          100: '#F5F5F5',
-          200: '#E5E5E5',
-          300: '#D4D4D4',
-          400: '#A3A3A3',
-          500: '#737373',
-          600: '#525252',
-          700: '#404040',
-          800: '#262626',
-          900: '#171717',
-        },
-
-        // Purple Accent Scale
-        purple: {
-          50: '#FAF8FF',
-          100: '#F3EFFF',
-          200: '#DEDBEE',
-          500: '#8685EF',
-          600: '#6B6AD4',
-          700: '#5251B0',
-        },
-
-        // Semantic Colors
-        success: {
-          50: '#F0FDF4',
-          500: '#22C55E',
-          600: '#16A34A',
-        },
-        warning: {
-          50: '#FFFBEB',
-          500: '#F59E0B',
-          600: '#D97706',
-        },
-        error: {
-          50: '#FEF2F2',
-          500: '#EF4444',
-          600: '#DC2626',
-        },
-
-        // Backward Compatibility Aliases
-        background: '#FAFAFA',      // maps to neutral-50
-        primary: '#8685ef',         // maps to purple-500
-        'accent-light': '#faf8ff',  // maps to purple-50
-        'accent-dark': '#dedbee',   // maps to purple-200
-      },
+      colors,
 
       fontFamily: {
         sans: [
@@ -245,4 +242,5 @@ const config: Config = {
   plugins: [],
 };
 
+export { colors };
 export default config;

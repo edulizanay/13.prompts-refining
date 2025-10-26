@@ -32,7 +32,7 @@ export function DatasetSelector({ selectedDatasetId }: DatasetSelectorProps) {
         {selectedDataset && (
           <button
             onClick={() => setPreviewDatasetId(selectedDataset.id)}
-            className="px-3 py-1 text-xs font-medium text-primary hover:bg-primary hover:bg-opacity-10 rounded"
+            className="px-3 py-1 text-xs font-medium text-purple-500 hover:bg-purple-50 rounded"
           >
             Preview
           </button>
@@ -40,7 +40,7 @@ export function DatasetSelector({ selectedDatasetId }: DatasetSelectorProps) {
       </div>
 
       {selectedDataset && (
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-neutral-500">
           Selected: <span className="font-medium">{selectedDataset.name}</span> ({selectedDataset.row_count} rows)
         </div>
       )}
@@ -54,11 +54,11 @@ export function DatasetSelector({ selectedDatasetId }: DatasetSelectorProps) {
         hasEscapeClose={true}
         className="max-h-96 flex flex-col"
       >
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">{previewDataset?.name} Preview</h3>
+        <div className="flex items-center justify-between p-4 border-b border-neutral-200">
+          <h3 className="text-lg font-semibold text-neutral-900">{previewDataset?.name} Preview</h3>
           <button
             onClick={() => setPreviewDatasetId(null)}
-            className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+            className="text-neutral-500 hover:text-neutral-700 text-2xl leading-none"
             title="Close"
           >
             ✕
@@ -67,12 +67,12 @@ export function DatasetSelector({ selectedDatasetId }: DatasetSelectorProps) {
 
         <div className="flex-1 overflow-auto">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-gray-50">
+            <thead className="sticky top-0 bg-neutral-50">
               <tr>
                 {previewDataset?.headers.map((h) => (
                   <th
                     key={h}
-                    className="px-4 py-2 text-left font-medium text-gray-700 border-b border-gray-200"
+                    className="px-4 py-2 text-left font-medium text-neutral-700 border-b border-neutral-200"
                   >
                     {h}
                   </th>
@@ -81,9 +81,9 @@ export function DatasetSelector({ selectedDatasetId }: DatasetSelectorProps) {
             </thead>
             <tbody>
               {previewDataset?.rows.map((row, idx) => (
-                <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-neutral-50'}>
                   {previewDataset.headers.map((h) => (
-                    <td key={h} className="px-4 py-2 border-b border-gray-200 text-gray-600">
+                    <td key={h} className="px-4 py-2 border-b border-neutral-200 text-neutral-600">
                       {row[h]}
                     </td>
                   ))}
@@ -93,7 +93,7 @@ export function DatasetSelector({ selectedDatasetId }: DatasetSelectorProps) {
           </table>
         </div>
 
-        <div className="px-4 py-2 border-t border-gray-200 text-xs text-gray-500">
+        <div className="px-4 py-2 border-t border-neutral-200 text-xs text-neutral-500">
           Showing {previewDataset?.rows.length} of {previewDataset?.row_count} rows
         </div>
       </Modal>
