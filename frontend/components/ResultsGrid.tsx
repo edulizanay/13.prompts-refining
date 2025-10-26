@@ -116,8 +116,14 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
     setShowDialog(true);
   };
 
-  const getCellForRow = (rowIndex: number, columnIndex: number): Cell | undefined => {
-    return cells.find((c) => c.row_index === rowIndex && c.column_index === columnIndex);
+  const getCellForRow = (rowIndex: number, columnIndex: number, expectedModelId: string): Cell | undefined => {
+    const cell = cells.find((c) => c.row_index === rowIndex && c.column_index === columnIndex);
+    // Verify the cell's model_id matches the current model in this column position
+    // If model was changed/reordered, this prevents showing stale data
+    if (cell && cell.model_id !== expectedModelId) {
+      return undefined; // Treat as "No data" if model doesn't match
+    }
+    return cell;
   };
 
   if (!mounted) return null;
@@ -186,8 +192,8 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
               </td>
 
               {/* Model cells - FIXED WIDTH (w-[310px] = 3% narrower than original 320px, DO NOT CHANGE to prevent layout shifts) */}
-              {modelIds.map((_modelId, columnIndex) => {
-                const cell = getCellForRow(rowIndex, columnIndex);
+              {modelIds.map((modelId, columnIndex) => {
+                const cell = getCellForRow(rowIndex, columnIndex, modelId);
                 return (
                   <td key={`${rowIndex}-${columnIndex}`} className="px-[15px] py-2 w-[310px]">
                     {cell ? (
@@ -222,9 +228,9 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
           {/* Summary Row - FIXED WIDTH (must match header/body cells, DO NOT CHANGE) */}
           <tr className="bg-purple-50 border-t-2 border-neutral-300 font-semibold">
             <td className="px-[15px] py-2 text-neutral-900 bg-neutral-100 w-14">Avg</td>
-            {modelIds.map((_modelId, columnIndex) => (
+            {modelIds.map((modelId, columnIndex) => (
               <td key={`summary-${columnIndex}`} className="px-[15px] py-2 w-[310px]">
-                <SummaryCell cells={cells} columnIndex={columnIndex} metricView={metricView} />
+                <SummaryCell cells={cells} columnIndex={columnIndex} modelId={modelId} metricView={metricView} />
               </td>
             ))}
           </tr>
@@ -665,13 +671,15 @@ function MetricBadge({ cell, metricView, showGraderOverlay, onToggleGrader, isEr
 interface SummaryCellProps {
   cells: Cell[];
   columnIndex: number;
+  modelId: string;
   metricView: 'grade' | 'tokens' | 'cost' | 'latency';
 }
 
-function SummaryCell({ cells, columnIndex, metricView }: SummaryCellProps) {
-  // Filter cells for this column, excluding errors and malformed
+function SummaryCell({ cells, columnIndex, modelId, metricView }: SummaryCellProps) {
+  // Filter cells for this column AND model_id, excluding errors and malformed
+  // This prevents stale data when columns are edited or reordered
   const validCells = cells.filter(
-    (c) => c.column_index === columnIndex && c.status === 'ok'
+    (c) => c.column_index === columnIndex && c.model_id === modelId && c.status === 'ok'
   );
 
   if (validCells.length === 0) {

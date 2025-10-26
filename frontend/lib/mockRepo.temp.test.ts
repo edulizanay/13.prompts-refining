@@ -171,6 +171,7 @@ describe('mockRepo.temp', () => {
       const cell = {
         run_id: 'run1',
         model_id: 'model1',
+        column_index: 0,
         row_index: 0,
         status: 'ok' as const,
         output_raw: 'Hello',
@@ -186,7 +187,7 @@ describe('mockRepo.temp', () => {
         manual_grade: null,
       };
       upsertCell(cell);
-      const retrieved = getCell('run1', 'model1', 0);
+      const retrieved = getCell('run1', 0, 0);
       expect(retrieved?.output_raw).toBe('Hello');
     });
   });
