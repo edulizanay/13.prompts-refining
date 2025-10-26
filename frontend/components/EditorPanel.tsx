@@ -4,7 +4,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useImperativeHandle, useCallback, forwardRef } from 'react';
-import { ArrowLeftIcon, ArrowRightIcon, MoreHorizontalIcon, PlusIcon, EyeIcon, EyeClosedIcon } from 'lucide-react';
+import { ArrowLeftIcon, ArrowRightIcon, MoreHorizontalIcon, PlusIcon } from 'lucide-react';
 import { Prompt } from '@/lib/types';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
@@ -30,12 +30,11 @@ interface EditorPanelProps {
   selectedDatasetId?: string | null;
   onDatasetSelected?: (datasetId: string | null) => void;
   selectedGraderId?: string | null;
-  onGraderSelected?: (graderId: string | null) => void;
   selectedModelIds?: string[];
   activeRunId?: string | null;
   onActiveRunIdChange?: (runId: string | null) => void;
-  onToggleCompactMode?: () => void;
-  isCompactMode?: boolean;
+  onEditorFocus?: () => void;
+  onRunClick?: () => void;
 }
 
 const ONBOARDING_PLACEHOLDER = `Write your prompt here. Use {{variables}} for dynamic inputs.
@@ -50,17 +49,15 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
     selectedDatasetId: propDatasetId,
     onDatasetSelected,
     selectedGraderId: propGraderId,
-    onGraderSelected,
     selectedModelIds: propModelIds,
     activeRunId: propActiveRunId,
     onActiveRunIdChange,
-    onToggleCompactMode,
-    isCompactMode = false,
+    onEditorFocus,
+    onRunClick,
   }, ref) {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [selectedId, setSelectedId] = useState<string>('');
   const [localDatasetId, setLocalDatasetId] = useState<string | null>(null);
-  const [localGraderId, setLocalGraderId] = useState<string | null>(null);
   const [currentPrompt, setCurrentPrompt] = useState<Prompt | null>(null);
   const [mounted, setMounted] = useState(false);
   const [isRenamingPrompt, setIsRenamingPrompt] = useState(false);
@@ -74,7 +71,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
 
   // Use prop values if provided, otherwise use local state
   const selectedDatasetId = propDatasetId !== undefined ? propDatasetId : localDatasetId;
-  const selectedGraderId = propGraderId !== undefined ? propGraderId : localGraderId;
+  const selectedGraderId = propGraderId !== undefined ? propGraderId : null;
   const selectedModelIds = propModelIds || [];
   const activeRunId = propActiveRunId !== undefined ? propActiveRunId : null;
 
@@ -162,6 +159,9 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
       return;
     }
 
+    // Notify parent that run is about to start
+    onRunClick?.();
+
     try {
       setIsRunning(true);
 
@@ -198,7 +198,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
       setIsRunning(false);
       onActiveRunIdChange?.(null);
     }
-  }, [currentPrompt, activeRunId, selectedDatasetId, selectedGraderId, selectedModelIds, onActiveRunIdChange]);
+  }, [currentPrompt, activeRunId, selectedDatasetId, selectedGraderId, selectedModelIds, onActiveRunIdChange, onRunClick]);
 
   // Expose triggerRun via ref for keyboard shortcuts
   useImperativeHandle(ref, () => ({
@@ -342,6 +342,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
           value={currentPrompt.text}
           onChange={handleUpdateText}
           placeholder={ONBOARDING_PLACEHOLDER}
+          onFocus={onEditorFocus}
         />
         {/* Run Button Overlay */}
         <div className="absolute bottom-4 right-4">
@@ -363,44 +364,28 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
         </div>
       </div>
 
-      {/* Toggle Compact Mode Button & Version Navigation */}
-      <div className="flex justify-between items-center">
-        <button
-          onClick={onToggleCompactMode}
-          className="p-2 rounded-md bg-transparent hover:bg-gray-100 transition-colors flex items-center gap-2"
-          aria-label={isCompactMode ? 'Expand to show results' : 'Collapse to focus mode'}
-          title={isCompactMode ? 'Expand to show results' : 'Collapse to focus mode'}
-        >
-          {isCompactMode ? (
-            <EyeIcon size={20} className="text-gray-600" />
-          ) : (
-            <EyeClosedIcon size={20} className="text-gray-600" />
-          )}
-        </button>
-
-        {/* Version Navigation Buttons */}
-        {/* TODO: Phase 2 - Version history backend integration */}
-        {/* These buttons will navigate through prompt versions once backend stores version snapshots */}
-        {/* Currently disabled since version history is not persisted */}
-        {currentPrompt.version_counter > 1 && (
-          <div className="flex gap-2">
-            <button
-              disabled
-              className="p-2 rounded-md bg-transparent hover:bg-gray-100 transition-colors cursor-not-allowed opacity-50"
-              aria-label="Go to previous version"
-            >
-              <ArrowLeftIcon size={20} className="text-gray-600" />
-            </button>
-            <button
-              disabled
-              className="p-2 rounded-md bg-transparent hover:bg-gray-100 transition-colors cursor-not-allowed opacity-50"
-              aria-label="Go to next version"
-            >
-              <ArrowRightIcon size={20} className="text-gray-600" />
-            </button>
-          </div>
-        )}
-      </div>
+      {/* Version Navigation Buttons */}
+      {/* TODO: Phase 2 - Version history backend integration */}
+      {/* These buttons will navigate through prompt versions once backend stores version snapshots */}
+      {/* Currently disabled since version history is not persisted */}
+      {currentPrompt.version_counter > 1 && (
+        <div className="flex gap-2 justify-end">
+          <button
+            disabled
+            className="p-2 rounded-md bg-transparent hover:bg-gray-100 transition-colors cursor-not-allowed opacity-50"
+            aria-label="Go to previous version"
+          >
+            <ArrowLeftIcon size={20} className="text-gray-600" />
+          </button>
+          <button
+            disabled
+            className="p-2 rounded-md bg-transparent hover:bg-gray-100 transition-colors cursor-not-allowed opacity-50"
+            aria-label="Go to next version"
+          >
+            <ArrowRightIcon size={20} className="text-gray-600" />
+          </button>
+        </div>
+      )}
 
       {/* Variables */}
       {placeholders.length > 0 && (

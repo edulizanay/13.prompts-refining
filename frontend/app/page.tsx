@@ -24,7 +24,8 @@ export default function Home() {
   const [currentDataset, setCurrentDataset] = useState<Dataset | null>(null);
   const [metricView, setMetricView] = useState<'grade' | 'tokens' | 'cost' | 'latency'>('grade');
   const [showParsedOnly] = useState(false);
-  const [isCompactMode, setIsCompactMode] = useState(false);
+  const [viewMode, setViewMode] = useState<'focus' | 'balanced'>('balanced');
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [uploadLoading, setUploadLoading] = useState(false);
   const [uploadToast, setUploadToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [prompts, setPrompts] = useState<Prompt[]>([]);
@@ -43,16 +44,44 @@ export default function Home() {
     setActiveRunIdState(uiState.activeRunId);
     setDisplayRunId(uiState.activeRunId);
 
-    // Load compact mode preference from localStorage
-    const savedCompactMode = localStorage.getItem('isCompactMode');
-    if (savedCompactMode !== null) {
-      setIsCompactMode(savedCompactMode === 'true');
+    // Load view mode preference from localStorage
+    const savedViewMode = localStorage.getItem('viewMode');
+    if (savedViewMode === 'focus' || savedViewMode === 'balanced') {
+      setViewMode(savedViewMode);
     }
 
     // Load prompts
     setPrompts(getAllPrompts());
 
     setMounted(true);
+  }, []);
+
+  // Change view mode with transition lock
+  const changeViewMode = useCallback((newMode: 'focus' | 'balanced') => {
+    if (isTransitioning || viewMode === newMode) return;
+
+    setIsTransitioning(true);
+    setViewMode(newMode);
+    localStorage.setItem('viewMode', newMode);
+
+    // Clear transition lock after animation completes
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 300);
+  }, [viewMode, isTransitioning]);
+
+  // Auto-trigger focus mode when editor is focused
+  const handleEditorFocus = useCallback(() => {
+    changeViewMode('focus');
+  }, [changeViewMode]);
+
+  // Auto-trigger balanced mode when run is clicked
+  const handleRunClick = useCallback(() => {
+    changeViewMode('balanced');
+  }, [changeViewMode]);
+
+  const handlePromptSelected = useCallback((_prompt: Prompt) => {
+    // Prompt selection is handled internally by EditorPanel
   }, []);
 
   // Update global UI state when activeRunId changes
@@ -79,8 +108,13 @@ export default function Home() {
       } else {
         setCurrentDataset(null);
       }
+    } else {
+      setCurrentRun(null);
+      setCurrentDataset(null);
+      // Auto-trigger focus mode when no results exist
+      changeViewMode('focus');
     }
-  }, [displayRunId]);
+  }, [displayRunId, changeViewMode]);
 
   // Keyboard shortcut: Cmd+Enter (Mac) or Ctrl+Enter (Windows/Linux) to run
   useEffect(() => {
@@ -97,16 +131,6 @@ export default function Home() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
-
-  const handlePromptSelected = useCallback((_prompt: Prompt) => {
-    // Prompt selection is handled internally by EditorPanel
-  }, []);
-
-  const toggleCompactMode = () => {
-    const newMode = !isCompactMode;
-    setIsCompactMode(newMode);
-    localStorage.setItem('isCompactMode', String(newMode));
-  };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.currentTarget.files?.[0];
@@ -142,8 +166,8 @@ export default function Home() {
       <div className="flex h-full gap-6 p-6">
         {/* Left Panel: Editor */}
         <div
-          style={{ width: isCompactMode ? '100%' : '40%' }}
-          className="overflow-y-auto px-6 transition-all duration-300 ease-in-out"
+          style={{ width: viewMode === 'focus' ? '65%' : '30%' }}
+          className="overflow-y-auto px-6 transition-all duration-comfortable ease-spring"
         >
           <EditorPanel
             ref={editorPanelRef}
@@ -151,20 +175,19 @@ export default function Home() {
             selectedDatasetId={selectedDatasetId}
             onDatasetSelected={setSelectedDatasetId}
             selectedGraderId={selectedGraderId}
-            onGraderSelected={setSelectedGraderId}
             selectedModelIds={selectedModelIds}
             activeRunId={activeRunId}
             onActiveRunIdChange={setActiveRunIdState}
-            onToggleCompactMode={toggleCompactMode}
-            isCompactMode={isCompactMode}
+            onEditorFocus={handleEditorFocus}
+            onRunClick={handleRunClick}
           />
         </div>
 
         {/* Right Panel: Results */}
-        {!isCompactMode && (
+        {viewMode === 'balanced' && (
           <div
-            style={{ width: '60%' }}
-            className="overflow-y-auto flex flex-col px-6 transition-all duration-300 ease-in-out"
+            style={{ width: '70%' }}
+            className="overflow-y-auto flex flex-col px-6 transition-all duration-comfortable ease-spring animate-slide-in"
           >
             {/* Model Manager */}
             <div className="mb-4">
