@@ -7,7 +7,7 @@
         "**/.gitignore": true,
         "**/next.config.js": true,
         "**/postcss.config.js": true,
-        "**/tailwind.config.ts": true,
+        "**/tailwind.config.ts": false,
         "**/tsconfig.json": true,
         "**/tsconfig.node.json": true,
         "**/next-env.d.ts": true,

@@ -53,20 +53,20 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
   return (
     <div className="space-y-4">
       {/* Results Table */}
-      <div className="overflow-x-auto border border-gray-200 rounded-lg">
+      <div className="w-fit overflow-x-auto border border-gray-200 rounded-lg">
         {/* IMPORTANT: Cells must have fixed width to prevent layout shifts during content updates */}
-        <table className="w-full text-sm table-fixed">
+        <table className="text-sm table-fixed">
         {/* Header */}
         <thead>
           <tr className="bg-gray-50 border-b border-gray-200">
-            {/* Row index header - FIXED WIDTH */}
-            <th className="px-4 py-2 text-left font-semibold text-gray-700 w-16">Row</th>
+            {/* Row index header - FIXED WIDTH (w-14 = 56px, 10% narrower than original 64px, DO NOT CHANGE) */}
+            <th className="px-[15px] py-2 text-left font-semibold text-gray-700 w-14">Row</th>
 
-            {/* Model columns - FIXED WIDTH */}
+            {/* Model columns - FIXED WIDTH (w-[310px] = 3% narrower than original 320px, DO NOT CHANGE to prevent layout shifts) */}
             {modelIds.map((modelId) => {
               const model = getModelById(modelId);
               return (
-                <th key={modelId} className="px-4 py-2 text-left font-semibold text-gray-700 w-80 text-[0.8em]">
+                <th key={modelId} className="px-[15px] py-2 text-left font-semibold text-gray-700 w-[310px] text-[0.8em]">
                   {model ? `${model.provider} / ${model.model}` : 'Unknown Model'}
                 </th>
               );
@@ -78,16 +78,16 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
         <tbody>
           {Array.from({ length: rowCount }).map((_, rowIndex) => (
             <tr key={rowIndex} className="border-b border-gray-200 hover:bg-gray-50">
-              {/* Row index cell - FIXED WIDTH */}
-              <td className="px-4 py-2 text-gray-600 font-medium bg-gray-50 w-16">
+              {/* Row index cell - FIXED WIDTH (w-14 = 56px, 10% narrower than original 64px, DO NOT CHANGE) */}
+              <td className="px-[15px] py-2 text-gray-600 font-medium bg-gray-50 w-14">
                 {rowIndex + 1}
               </td>
 
-              {/* Model cells - FIXED WIDTH */}
+              {/* Model cells - FIXED WIDTH (w-[310px] = 3% narrower than original 320px, DO NOT CHANGE to prevent layout shifts) */}
               {modelIds.map((modelId) => {
                 const cell = getCellForRow(rowIndex, modelId);
                 return (
-                  <td key={`${rowIndex}-${modelId}`} className="px-4 py-2 w-80">
+                  <td key={`${rowIndex}-${modelId}`} className="px-[15px] py-2 w-[310px]">
                     {cell ? (
                       <ResultCellView
                         cell={cell}
@@ -117,11 +117,11 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
             </tr>
           ))}
 
-          {/* Summary Row */}
+          {/* Summary Row - FIXED WIDTH (must match header/body cells, DO NOT CHANGE) */}
           <tr className="bg-accent-light border-t-2 border-gray-300 font-semibold">
-            <td className="px-4 py-2 text-gray-900 bg-gray-100 w-[5vw]">Avg</td>
+            <td className="px-[15px] py-2 text-gray-900 bg-gray-100 w-14">Avg</td>
             {modelIds.map((modelId) => (
-              <td key={`summary-${modelId}`} className="px-4 py-2 w-[20vw]">
+              <td key={`summary-${modelId}`} className="px-[15px] py-2 w-[310px]">
                 <SummaryCell cells={cells} modelId={modelId} metricView={metricView} />
               </td>
             ))}
@@ -444,9 +444,9 @@ function MetricBadge({ cell, metricView, showGraderOverlay, onToggleGrader, isEr
         }`}
         title="Click to toggle pass/fail"
       >
-        {isGreen && <ThumbsUp className="w-4 h-4" />}
-        {isRed && <ThumbsDown className="w-4 h-4" />}
-        {isNeutral && <ThumbsUp className="w-4 h-4" />}
+        {isGreen && <ThumbsUp className="w-[12.8px] h-[12.8px]" />}
+        {isRed && <ThumbsDown className="w-[12.8px] h-[12.8px]" />}
+        {isNeutral && <ThumbsUp className="w-[12.8px] h-[12.8px]" />}
       </button>
     );
   }

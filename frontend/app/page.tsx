@@ -212,91 +212,94 @@ export default function Home() {
             </div>
 
             <div className="space-y-4 flex-1">
-              {/* Toolbar container with metric view carousel and upload button */}
-              <div className="flex gap-2 items-center bg-gray-50 p-3 rounded-lg border border-gray-200">
-                <button
-                  onClick={cycleMetricView}
-                  className={`px-3 py-1.5 text-xs font-medium bg-purple-50 text-primary border border-purple-200 rounded-full hover:bg-purple-100 hover:border-primary transition-all duration-150 min-w-[64px] ${
-                    metricFading ? 'opacity-0' : 'opacity-100'
-                  }`}
-                  style={{ transition: 'opacity 150ms ease-in-out' }}
-                >
-                  {metricView.charAt(0).toUpperCase() + metricView.slice(1)}
-                </button>
-
-                {/* Grader Selector Button */}
-                <div className="ml-auto flex gap-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="px-4 py-2 bg-purple-50 text-primary border border-purple-200 rounded-full hover:bg-purple-100 hover:border-primary transition-all duration-150 text-sm font-medium flex items-center gap-2">
-                        {selectedGraderId ? (
-                          <span>{prompts.find(p => p.id === selectedGraderId)?.name}</span>
-                        ) : (
-                          <FlaskConicalIcon size={16} />
-                        )}
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56" align="end">
-                      <DropdownMenuItem onClick={() => setSelectedGraderId(null)}>
-                        No grader
-                      </DropdownMenuItem>
-                      {prompts
-                        .filter((p) => p.type === 'grader')
-                        .map((p) => (
-                          <DropdownMenuItem key={p.id} onClick={() => setSelectedGraderId(p.id)}>
-                            {p.name}
-                          </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  {/* Upload Dataset Button */}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".csv,.json"
-                    onChange={handleFileSelect}
-                    disabled={uploadLoading}
-                    className="hidden"
-                  />
+              {/* Wrapper to constrain toolbar and table to same width */}
+              <div className="w-fit max-w-full">
+                {/* Toolbar container with metric view carousel and upload button */}
+                <div className="flex gap-2 items-center bg-gray-50 p-3 rounded-lg border border-gray-200 mb-4">
                   <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploadLoading}
-                    className="p-2 bg-purple-50 text-primary border border-purple-200 rounded-full hover:bg-purple-100 hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150"
-                    title="Upload Dataset"
+                    onClick={cycleMetricView}
+                    className={`px-3 py-1.5 text-xs font-medium bg-purple-50 text-primary border border-purple-200 rounded-full hover:bg-purple-100 hover:border-primary transition-all duration-150 min-w-[64px] ${
+                      metricFading ? 'opacity-0' : 'opacity-100'
+                    }`}
+                    style={{ transition: 'opacity 150ms ease-in-out' }}
                   >
-                    {uploadLoading ? (
-                      <span className="inline-block w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
-                    ) : (
-                      <FileUpIcon size={16} />
-                    )}
+                    {metricView.charAt(0).toUpperCase() + metricView.slice(1)}
                   </button>
+
+                  {/* Grader Selector Button */}
+                  <div className="ml-auto flex gap-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="px-4 py-2 bg-purple-50 text-primary border border-purple-200 rounded-full hover:bg-purple-100 hover:border-primary transition-all duration-150 text-sm font-medium flex items-center gap-2">
+                          {selectedGraderId ? (
+                            <span>{prompts.find(p => p.id === selectedGraderId)?.name}</span>
+                          ) : (
+                            <FlaskConicalIcon size={16} />
+                          )}
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-56" align="end">
+                        <DropdownMenuItem onClick={() => setSelectedGraderId(null)}>
+                          No grader
+                        </DropdownMenuItem>
+                        {prompts
+                          .filter((p) => p.type === 'grader')
+                          .map((p) => (
+                            <DropdownMenuItem key={p.id} onClick={() => setSelectedGraderId(p.id)}>
+                              {p.name}
+                            </DropdownMenuItem>
+                          ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    {/* Upload Dataset Button */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".csv,.json"
+                      onChange={handleFileSelect}
+                      disabled={uploadLoading}
+                      className="hidden"
+                    />
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadLoading}
+                      className="p-2 bg-purple-50 text-primary border border-purple-200 rounded-full hover:bg-purple-100 hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150"
+                      title="Upload Dataset"
+                    >
+                      {uploadLoading ? (
+                        <span className="inline-block w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
+                      ) : (
+                        <FileUpIcon size={16} />
+                      )}
+                    </button>
+                  </div>
                 </div>
+
+                {/* Upload Toast */}
+                {uploadToast && (
+                  <div
+                    className={`p-3 rounded-lg text-sm mb-4 ${
+                      uploadToast.type === 'success'
+                        ? 'bg-green-100 text-green-700 border border-green-200'
+                        : 'bg-red-100 text-red-700 border border-red-200'
+                    }`}
+                  >
+                    {uploadToast.message}
+                  </div>
+                )}
+
+                {currentRun && (
+                  <ResultsGrid
+                    run={currentRun}
+                    dataset={currentDataset}
+                    metricView={metricView}
+                    showParsedOnly={showParsedOnly}
+                    activeRunId={activeRunId}
+                    isHistoricalView={false}
+                  />
+                )}
               </div>
-
-              {/* Upload Toast */}
-              {uploadToast && (
-                <div
-                  className={`p-3 rounded-lg text-sm ${
-                    uploadToast.type === 'success'
-                      ? 'bg-green-100 text-green-700 border border-green-200'
-                      : 'bg-red-100 text-red-700 border border-red-200'
-                  }`}
-                >
-                  {uploadToast.message}
-                </div>
-              )}
-
-              {currentRun && (
-                <ResultsGrid
-                  run={currentRun}
-                  dataset={currentDataset}
-                  metricView={metricView}
-                  showParsedOnly={showParsedOnly}
-                  activeRunId={activeRunId}
-                  isHistoricalView={false}
-                />
-              )}
             </div>
         </div>
       </div>
