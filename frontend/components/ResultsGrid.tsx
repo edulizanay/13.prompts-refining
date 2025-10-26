@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { Run, Cell, Dataset, Model } from '@/lib/types';
 import { truncate, parseOutput, formatGrade, formatTokens, formatCost, formatLatency, gradeToStyles } from '@/lib/utils';
-import { getCellsByRunId, getModelById, upsertCell, getAllModels, createModel, getModelByProviderAndName, deleteCellsByColumnIndex } from '@/lib/mockRepo.temp';
+import { getCellsByRunId, getModelById, upsertCell, getAllModels, createModel, getModelByProviderAndName, deleteCellsByColumnIndex, shiftCellColumnIndices } from '@/lib/mockRepo.temp';
 import { generateMockCell } from '@/lib/mockRunExecutor.temp';
 import { Modal } from '@/components/ui/modal';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -99,6 +99,12 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
 
   const handleRemoveModel = (index: number) => {
     if (selectedModelIds.length <= 1) return; // Minimum 1 model
+
+    // Shift column indices for cells to the right of the removed column
+    if (run) {
+      shiftCellColumnIndices(run.id, index);
+    }
+
     onModelsChange(selectedModelIds.filter((_, i) => i !== index));
   };
 

@@ -234,6 +234,29 @@ export function deleteCellsByColumnIndex(runId: string, columnIndex: number): vo
   localStorage.setItem(STORAGE_KEYS.CELLS, JSON.stringify(filteredCells));
 }
 
+export function shiftCellColumnIndices(runId: string, removedColumnIndex: number): void {
+  const data = localStorage.getItem(STORAGE_KEYS.CELLS);
+  if (!data) return;
+
+  const cells = JSON.parse(data) as Record<string, Cell>;
+  const updatedCells: Record<string, Cell> = {};
+
+  for (const [, cell] of Object.entries(cells)) {
+    if (cell.run_id === runId && cell.column_index > removedColumnIndex) {
+      // Shift down cells that were to the right of the removed column
+      const updatedCell = { ...cell, column_index: cell.column_index - 1 };
+      const newKey = getCellKey(updatedCell.run_id, updatedCell.column_index, updatedCell.row_index);
+      updatedCells[newKey] = updatedCell;
+    } else {
+      // Keep other cells as-is
+      const key = getCellKey(cell.run_id, cell.column_index, cell.row_index);
+      updatedCells[key] = cell;
+    }
+  }
+
+  localStorage.setItem(STORAGE_KEYS.CELLS, JSON.stringify(updatedCells));
+}
+
 // UI STATE
 
 export function getUIState(): UIState {
