@@ -54,18 +54,18 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
     <div className="space-y-4">
       {/* Results Table */}
       <div className="overflow-x-auto border border-gray-200 rounded-lg">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm table-fixed">
         {/* Header */}
         <thead>
           <tr className="bg-gray-50 border-b border-gray-200">
             {/* Row index header */}
-            <th className="px-4 py-2 text-left font-semibold text-gray-700 w-[64px]">Row</th>
+            <th className="px-4 py-2 text-left font-semibold text-gray-700 w-[5vw]">Row</th>
 
             {/* Model columns */}
             {modelIds.map((modelId) => {
               const model = getModelById(modelId);
               return (
-                <th key={modelId} className="px-4 py-2 text-left font-semibold text-gray-700 w-[300px] text-[0.8em]">
+                <th key={modelId} className="px-4 py-2 text-left font-semibold text-gray-700 w-[20vw] text-[0.8em]">
                   {model ? `${model.provider} / ${model.model}` : 'Unknown Model'}
                 </th>
               );
@@ -78,7 +78,7 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
           {Array.from({ length: rowCount }).map((_, rowIndex) => (
             <tr key={rowIndex} className="border-b border-gray-200 hover:bg-gray-50">
               {/* Row index cell */}
-              <td className="px-4 py-2 text-gray-600 font-medium bg-gray-50 w-[64px]">
+              <td className="px-4 py-2 text-gray-600 font-medium bg-gray-50 w-[5vw]">
                 {rowIndex + 1}
               </td>
 
@@ -86,7 +86,7 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
               {modelIds.map((modelId) => {
                 const cell = getCellForRow(rowIndex, modelId);
                 return (
-                  <td key={`${rowIndex}-${modelId}`} className="px-4 py-2 w-[300px]">
+                  <td key={`${rowIndex}-${modelId}`} className="px-4 py-2 w-[20vw]">
                     {cell ? (
                       <ResultCellView
                         cell={cell}
@@ -118,9 +118,9 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
 
           {/* Summary Row */}
           <tr className="bg-accent-light border-t-2 border-gray-300 font-semibold">
-            <td className="px-4 py-2 text-gray-900 bg-gray-100 w-[64px]">Avg</td>
+            <td className="px-4 py-2 text-gray-900 bg-gray-100 w-[5vw]">Avg</td>
             {modelIds.map((modelId) => (
-              <td key={`summary-${modelId}`} className="px-4 py-2 w-[300px]">
+              <td key={`summary-${modelId}`} className="px-4 py-2 w-[20vw]">
                 <SummaryCell cells={cells} modelId={modelId} metricView={metricView} />
               </td>
             ))}

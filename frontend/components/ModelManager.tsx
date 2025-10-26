@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { Model } from '@/lib/types';
-import { getAllModels, createModel, deleteModel, getModelByProviderAndName } from '@/lib/mockRepo.temp';
+import { getAllModels, createModel, getModelByProviderAndName } from '@/lib/mockRepo.temp';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Modal } from '@/components/ui/modal';
 
@@ -80,15 +80,18 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
     setShowDialog(false);
   };
 
-  const handleRemoveModel = (modelId: string) => {
-    deleteModel(modelId);
-    setModels(getAllModels());
-    onModelsChange(selectedModelIds.filter((id) => id !== modelId));
+  const handleRemoveModel = (index: number) => {
+    onModelsChange(selectedModelIds.filter((_, i) => i !== index));
   };
 
   if (!mounted) return null;
 
-  const selectedModels = models.filter((m) => selectedModelIds.includes(m.id));
+  const selectedModelEntries = selectedModelIds
+    .map((modelId, index) => {
+      const model = models.find((m) => m.id === modelId);
+      return model ? { model, index } : null;
+    })
+    .filter((entry): entry is { model: Model; index: number } => entry !== null);
   const providers = Array.from(new Set(models.map((m) => m.provider)));
   const modelsForProvider = models.filter((m) => m.provider === selectedProvider);
 
@@ -96,9 +99,9 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
     <div>
       {/* Model cards - horizontal stack with fixed width */}
       <div className="flex items-center gap-2">
-        {selectedModels.map((model) => (
+        {selectedModelEntries.map(({ model, index }) => (
           <div
-            key={model.id}
+            key={`${model.id}-${index}`}
             className="group relative w-40 p-2 bg-white rounded-md border border-gray-200 hover:border-primary hover:shadow-sm transition-all cursor-pointer flex items-center justify-between"
             onClick={() => setShowDialog(true)}
             title="Click to change model"
@@ -107,11 +110,11 @@ export function ModelManager({ selectedModelIds, onModelsChange }: ModelManagerP
               <p className="text-xs font-medium text-gray-900 truncate">{model.provider}</p>
               <p className="text-xs text-gray-500 truncate">{model.model}</p>
             </div>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRemoveModel(model.id);
-              }}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemoveModel(index);
+                }}
               className="flex-shrink-0 ml-2 text-gray-400 group-hover:text-gray-400 font-bold transition-colors opacity-0 group-hover:opacity-100"
               title="Remove model"
             >
