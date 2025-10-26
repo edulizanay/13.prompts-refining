@@ -13,6 +13,7 @@ interface PromptEditorProps {
   onChange: (value: string) => void;
   placeholder?: string;
   onFocus?: () => void;
+  onBlur?: () => void;
 }
 
 // Syntax highlighting plugin for {{variables}} and <tags>
@@ -121,7 +122,7 @@ const indentFoldService = foldService.of((state, from) => {
   return null;
 });
 
-export function PromptEditor({ value, onChange, placeholder, onFocus }: PromptEditorProps) {
+export function PromptEditor({ value, onChange, placeholder, onFocus, onBlur }: PromptEditorProps) {
   // Custom theme with purple focus ring and styled scrollbar
   const customTheme = EditorView.theme({
     '&': {
@@ -205,10 +206,14 @@ export function PromptEditor({ value, onChange, placeholder, onFocus }: PromptEd
     },
   });
 
-  // Focus event handler extension
-  const focusHandler = EditorView.domEventHandlers({
+  // Focus and blur event handler extension
+  const focusBlurHandler = EditorView.domEventHandlers({
     focus: () => {
       onFocus?.();
+      return false;
+    },
+    blur: () => {
+      onBlur?.();
       return false;
     },
   });
@@ -218,7 +223,7 @@ export function PromptEditor({ value, onChange, placeholder, onFocus }: PromptEd
     customTheme,
     syntaxHighlightPlugin,
     indentFoldService,
-    focusHandler,
+    focusBlurHandler,
     EditorView.lineWrapping,
     EditorState.tabSize.of(2),
   ];

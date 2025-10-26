@@ -34,6 +34,7 @@ interface EditorPanelProps {
   activeRunId?: string | null;
   onActiveRunIdChange?: (runId: string | null) => void;
   onEditorFocus?: () => void;
+  onEditorBlur?: () => void;
   onRunClick?: () => void;
 }
 
@@ -53,6 +54,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
     activeRunId: propActiveRunId,
     onActiveRunIdChange,
     onEditorFocus,
+    onEditorBlur,
     onRunClick,
   }, ref) {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
@@ -343,13 +345,14 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
           onChange={handleUpdateText}
           placeholder={ONBOARDING_PLACEHOLDER}
           onFocus={onEditorFocus}
+          onBlur={onEditorBlur}
         />
         {/* Run Button Overlay */}
         <div className="absolute bottom-4 right-4">
           <Button
             onClick={handleRun}
             disabled={isRunning || !!activeRunId || !currentPrompt || selectedModelIds.length === 0}
-            size="sm"
+            size="small"
             className="min-w-[80px] min-h-[32px]"
           >
             {(isRunning || activeRunId) ? (

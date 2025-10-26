@@ -23,6 +23,7 @@ export default function Home() {
   const [currentRun, setCurrentRun] = useState<Run | null>(null);
   const [currentDataset, setCurrentDataset] = useState<Dataset | null>(null);
   const [metricView, setMetricView] = useState<'grade' | 'tokens' | 'cost' | 'latency'>('grade');
+  const [metricFading, setMetricFading] = useState(false);
   const [showParsedOnly] = useState(false);
   const [viewMode, setViewMode] = useState<'focus' | 'balanced'>('balanced');
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -75,6 +76,11 @@ export default function Home() {
     changeViewMode('focus');
   }, [changeViewMode]);
 
+  // Auto-trigger balanced mode when editor loses focus
+  const handleEditorBlur = useCallback(() => {
+    changeViewMode('balanced');
+  }, [changeViewMode]);
+
   // Auto-trigger balanced mode when run is clicked
   const handleRunClick = useCallback(() => {
     changeViewMode('balanced');
@@ -83,6 +89,19 @@ export default function Home() {
   const handlePromptSelected = useCallback((_prompt: Prompt) => {
     // Prompt selection is handled internally by EditorPanel
   }, []);
+
+  // Cycle through metric views with fade transition
+  const cycleMetricView = useCallback(() => {
+    const metrics: Array<'grade' | 'tokens' | 'cost' | 'latency'> = ['grade', 'tokens', 'cost', 'latency'];
+    const currentIndex = metrics.indexOf(metricView);
+    const nextIndex = (currentIndex + 1) % metrics.length;
+
+    setMetricFading(true);
+    setTimeout(() => {
+      setMetricView(metrics[nextIndex]);
+      setMetricFading(false);
+    }, 150);
+  }, [metricView]);
 
   // Update global UI state when activeRunId changes
   useEffect(() => {
@@ -111,10 +130,8 @@ export default function Home() {
     } else {
       setCurrentRun(null);
       setCurrentDataset(null);
-      // Auto-trigger focus mode when no results exist
-      changeViewMode('focus');
     }
-  }, [displayRunId, changeViewMode]);
+  }, [displayRunId]);
 
   // Keyboard shortcut: Cmd+Enter (Mac) or Ctrl+Enter (Windows/Linux) to run
   useEffect(() => {
@@ -163,7 +180,7 @@ export default function Home() {
 
   return (
     <div className="p-6 h-screen w-full bg-background flex flex-col">
-      <div className="flex h-full gap-6 p-6">
+      <div className="flex h-full gap-3 p-6">
         {/* Left Panel: Editor */}
         <div
           style={{ width: viewMode === 'focus' ? '65%' : '30%' }}
@@ -179,38 +196,33 @@ export default function Home() {
             activeRunId={activeRunId}
             onActiveRunIdChange={setActiveRunIdState}
             onEditorFocus={handleEditorFocus}
+            onEditorBlur={handleEditorBlur}
             onRunClick={handleRunClick}
           />
         </div>
 
         {/* Right Panel: Results */}
-        {viewMode === 'balanced' && (
-          <div
-            style={{ width: '70%' }}
-            className="overflow-y-auto flex flex-col px-6 transition-all duration-comfortable ease-spring animate-slide-in"
-          >
+        <div
+          style={{ width: viewMode === 'focus' ? '35%' : '70%' }}
+          className="overflow-y-auto flex flex-col px-6 transition-all duration-comfortable ease-spring"
+        >
             {/* Model Manager */}
             <div className="mb-4">
               <ModelManager selectedModelIds={selectedModelIds} onModelsChange={setSelectedModelIds} />
             </div>
 
             <div className="space-y-4 flex-1">
-              {/* Toolbar container with metric view and upload button */}
+              {/* Toolbar container with metric view carousel and upload button */}
               <div className="flex gap-2 items-center bg-gray-50 p-3 rounded-lg border border-gray-200">
-                <span className="text-xs font-medium text-gray-600">View:</span>
-                {(['grade', 'tokens', 'cost', 'latency'] as const).map((view) => (
-                  <button
-                    key={view}
-                    onClick={() => setMetricView(view)}
-                    className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                      metricView === view
-                        ? 'bg-primary text-white'
-                        : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    {view.charAt(0).toUpperCase() + view.slice(1)}
-                  </button>
-                ))}
+                <button
+                  onClick={cycleMetricView}
+                  className={`px-3 py-1.5 text-xs font-medium bg-purple-50 text-primary border border-purple-200 rounded-full hover:bg-purple-100 hover:border-primary transition-all duration-150 min-w-[64px] ${
+                    metricFading ? 'opacity-0' : 'opacity-100'
+                  }`}
+                  style={{ transition: 'opacity 150ms ease-in-out' }}
+                >
+                  {metricView.charAt(0).toUpperCase() + metricView.slice(1)}
+                </button>
 
                 {/* Grader Selector Button */}
                 <div className="ml-auto flex gap-2">
@@ -286,8 +298,7 @@ export default function Home() {
                 />
               )}
             </div>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

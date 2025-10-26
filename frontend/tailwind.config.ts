@@ -129,7 +129,7 @@ const config: Config = {
         'instant': '50ms',
         'fast': '150ms',
         'DEFAULT': '200ms',
-        'comfortable': '300ms',
+        'comfortable': '450ms',
         'slow': '500ms',
       },
 

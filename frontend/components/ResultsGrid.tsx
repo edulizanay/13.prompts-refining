@@ -54,18 +54,19 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
     <div className="space-y-4">
       {/* Results Table */}
       <div className="overflow-x-auto border border-gray-200 rounded-lg">
+        {/* IMPORTANT: Cells must have fixed width to prevent layout shifts during content updates */}
         <table className="w-full text-sm table-fixed">
         {/* Header */}
         <thead>
           <tr className="bg-gray-50 border-b border-gray-200">
-            {/* Row index header */}
-            <th className="px-4 py-2 text-left font-semibold text-gray-700 w-[5vw]">Row</th>
+            {/* Row index header - FIXED WIDTH */}
+            <th className="px-4 py-2 text-left font-semibold text-gray-700 w-16">Row</th>
 
-            {/* Model columns */}
+            {/* Model columns - FIXED WIDTH */}
             {modelIds.map((modelId) => {
               const model = getModelById(modelId);
               return (
-                <th key={modelId} className="px-4 py-2 text-left font-semibold text-gray-700 w-[20vw] text-[0.8em]">
+                <th key={modelId} className="px-4 py-2 text-left font-semibold text-gray-700 w-80 text-[0.8em]">
                   {model ? `${model.provider} / ${model.model}` : 'Unknown Model'}
                 </th>
               );
@@ -77,16 +78,16 @@ export function ResultsGrid({ run, dataset, metricView, showParsedOnly, activeRu
         <tbody>
           {Array.from({ length: rowCount }).map((_, rowIndex) => (
             <tr key={rowIndex} className="border-b border-gray-200 hover:bg-gray-50">
-              {/* Row index cell */}
-              <td className="px-4 py-2 text-gray-600 font-medium bg-gray-50 w-[5vw]">
+              {/* Row index cell - FIXED WIDTH */}
+              <td className="px-4 py-2 text-gray-600 font-medium bg-gray-50 w-16">
                 {rowIndex + 1}
               </td>
 
-              {/* Model cells */}
+              {/* Model cells - FIXED WIDTH */}
               {modelIds.map((modelId) => {
                 const cell = getCellForRow(rowIndex, modelId);
                 return (
-                  <td key={`${rowIndex}-${modelId}`} className="px-4 py-2 w-[20vw]">
+                  <td key={`${rowIndex}-${modelId}`} className="px-4 py-2 w-80">
                     {cell ? (
                       <ResultCellView
                         cell={cell}
