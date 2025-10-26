@@ -3,9 +3,11 @@
 
 'use client';
 
+import { useState } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { EditorView, Decoration, ViewPlugin, DecorationSet, ViewUpdate } from '@codemirror/view';
-import { EditorState, Range } from '@codemirror/state';
+import { EditorState, Range, StateEffect, StateField } from '@codemirror/state';
+import { keymap } from '@codemirror/view';
 import { foldService } from '@codemirror/language';
 
 interface PromptEditorProps {
@@ -123,6 +125,8 @@ const indentFoldService = foldService.of((state, from) => {
 });
 
 export function PromptEditor({ value, onChange, placeholder, onFocus, onBlur }: PromptEditorProps) {
+  const [lineWrapping, setLineWrapping] = useState(true);
+
   // Custom theme with purple focus ring and styled scrollbar
   const customTheme = EditorView.theme({
     '&': {
@@ -218,13 +222,25 @@ export function PromptEditor({ value, onChange, placeholder, onFocus, onBlur }: 
     },
   });
 
+  // Toggle line wrapping keybinding (Ctrl+Shift+Z)
+  const toggleWrapKeymap = keymap.of([
+    {
+      key: 'Ctrl-Shift-z',
+      run: () => {
+        setLineWrapping((prev) => !prev);
+        return true;
+      },
+    },
+  ]);
+
   // Extensions for line numbers, syntax highlighting, folding, and custom placeholder
   const extensions = [
     customTheme,
     syntaxHighlightPlugin,
     indentFoldService,
     focusBlurHandler,
-    EditorView.lineWrapping,
+    toggleWrapKeymap,
+    ...(lineWrapping ? [EditorView.lineWrapping] : []),
     EditorState.tabSize.of(2),
   ];
 
