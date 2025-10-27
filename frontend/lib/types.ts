@@ -30,6 +30,8 @@ export interface Model {
   id: string;
   provider: string;
   model: string;
+  price_input: number; // price per 1M input tokens
+  price_output: number; // price per 1M output tokens
 }
 
 export interface Run {

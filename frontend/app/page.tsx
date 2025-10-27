@@ -4,7 +4,8 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { FileUpIcon, FlaskConicalIcon } from 'lucide-react';
+import { FileUpIcon, FlaskConicalIcon, DollarSignIcon } from 'lucide-react';
+import Link from 'next/link';
 import type { Prompt, Run, Dataset } from '@/lib/types';
 import { initializeSeedData, getUIState, setActiveRunId, getRunById, getDatasetById, deduplicateModels, createDataset, getAllPrompts, getAllModels } from '@/lib/mockRepo.temp';
 import { parseDatasetFile } from '@/lib/utils';
@@ -275,6 +276,15 @@ export default function Home() {
                         <FileUpIcon size={16} />
                       )}
                     </button>
+
+                    {/* Model Costs Link */}
+                    <Link
+                      href="/model-costs"
+                      className="p-2 bg-purple-50 text-purple-500 border border-purple-200 rounded-full hover:bg-purple-100 hover:border-purple-500 transition-all duration-150"
+                      title="Model Costs"
+                    >
+                      <DollarSignIcon size={16} />
+                    </Link>
                   </div>
                 </div>
 
