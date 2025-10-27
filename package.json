@@ -3,12 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "cd frontend && npm run dev",
-    "build": "cd frontend && npm run build",
-    "start": "cd frontend && npm run start",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:frontend": "cd frontend && npm run start",
+    "start:backend": "cd backend && npm run start",
     "test": "cd frontend && npm run test",
     "test:watch": "cd frontend && npm run test:watch",
-    "install-all": "npm install && cd frontend && npm install"
+    "install-all": "npm install && cd frontend && npm install && cd ../backend && npm install"
   },
   "workspaces": [
     "frontend",
@@ -17,5 +23,8 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.76.1",
     "dotenv": "^17.2.3"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }

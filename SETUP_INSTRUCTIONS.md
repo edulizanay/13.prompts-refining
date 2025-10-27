@@ -1,241 +1,316 @@
-# Setup Instructions for Supabase Integration
+# Setup Instructions - Separated Backend Architecture
 
-## Progress Summary
+## Architecture Overview
 
-### ✅ Completed (Slice 1.1-1.2 + Slice 1.3 infrastructure)
+The application now uses a **separated backend architecture**:
 
-1. **Environment Setup**
-   - Created `.env.local` with your Supabase API keys
-   - Created `.env.example` template for the repository
+```
+Frontend (Port 3000)          Backend (Port 3001)
+├── Next.js UI               ├── Express Server
+├── React Components         ├── API Routes
+├── Supabase Browser Client  ├── Supabase Server Client
+└── Calls Backend API        └── Database Operations
+```
 
-2. **Database Schema**
-   - Created `prompts` table migration with RLS policies
-   - Added `expected_output` and `version_counter` fields to match UI expectations
-   - Created `datasets` and `dataset_rows` tables with RLS policies
-   - Files: `supabase/migrations/20251026000001_create_prompts_table.sql`
-   - Files: `supabase/migrations/20251026000002_add_prompt_fields.sql`
-   - Files: `supabase/migrations/20251026000003_create_datasets_tables.sql`
+## Completed Implementation ✅
 
-3. **Supabase Client Setup**
-   - Created browser client (`frontend/lib/supabase/client.ts`)
-   - Created server client (`frontend/lib/supabase/server.ts`)
-   - Created TypeScript types (`frontend/lib/supabase/types.ts`)
+### Backend Server (`backend/`)
+- Express.js server on port 3001
+- JWT authentication middleware
+- Supabase integration without Next.js dependencies
+- API routes: `/api/prompts`, `/api/datasets`
+- File upload handling with Multer
 
-4. **Backend Data Layer**
-   - Created prompts data layer (`frontend/lib/data/prompts.ts`)
-   - Implemented CRUD operations with RLS enforcement
-   - Set up integration test infrastructure
+### Frontend (`frontend/`)
+- Next.js app on port 3000
+- API client with automatic auth token injection
+- Supabase browser client for authentication
+- Service layer calls backend API
 
-5. **API Routes**
-   - Created `GET /api/prompts` - List all prompts
-   - Created `POST /api/prompts` - Create new prompt
-   - Created `GET /api/prompts/[id]` - Get single prompt
-   - Created `PATCH /api/prompts/[id]` - Update prompt
-   - Created `DELETE /api/prompts/[id]` - Delete prompt
-
-6. **Authentication**
-   - Added Supabase Auth helpers (`frontend/lib/auth/auth.ts`)
-   - Created auth page (`frontend/app/auth/page.tsx`)
-   - Added auth middleware to protect routes (`frontend/middleware.ts`)
-
-7. **Client Service Layer**
-   - Created async service functions (`frontend/lib/services/prompts.client.ts`)
-   - Provides drop-in replacements for mock functions
+### Database
+- Supabase PostgreSQL with RLS policies
+- Tables: `prompts`, `datasets`, `dataset_rows`
+- Row Level Security ensures users only access their own data
 
 ---
 
-## 🚧 Manual Steps Required
+## Setup Instructions
 
-Before the app will work, you must complete these manual steps:
+### 1. Install Dependencies
 
-### Step 1: Apply Database Migrations
+```bash
+# From project root
+npm run install-all
 
-1. Go to your Supabase Dashboard: https://supabase.com/dashboard/project/wcmiprucvjrjhfnrtfas
-2. Navigate to **SQL Editor** → **New Query**
-3. Apply migration #1 (Prompts table):
-   - Copy contents of `supabase/migrations/20251026000001_create_prompts_table.sql`
-   - Paste and run
-4. Apply migration #2 (Prompts fields):
-   - Copy contents of `supabase/migrations/20251026000002_add_prompt_fields.sql`
-   - Paste and run
-5. Apply migration #3 (Datasets tables):
-   - Copy contents of `supabase/migrations/20251026000003_create_datasets_tables.sql`
-   - Paste and run
+# This will install:
+# - Root workspace dependencies
+# - Frontend dependencies
+# - Backend dependencies
+```
 
-Expected result: `prompts`, `datasets`, and `dataset_rows` tables should appear in **Table Editor** with all fields.
+### 2. Apply Database Migrations
 
-### Step 2: Enable Email Auth (if not already enabled)
+**Go to Supabase Dashboard:** https://supabase.com/dashboard/project/wcmiprucvjrjhfnrtfas
 
-1. Go to **Authentication** → **Providers** in Supabase Dashboard
+Navigate to **SQL Editor** → **New Query** and run each migration:
+
+1. **Migration #1** - Prompts table
+   ```sql
+   -- Copy and paste: supabase/migrations/20251026000001_create_prompts_table.sql
+   ```
+
+2. **Migration #2** - Prompts fields
+   ```sql
+   -- Copy and paste: supabase/migrations/20251026000002_add_prompt_fields.sql
+   ```
+
+3. **Migration #3** - Datasets tables
+   ```sql
+   -- Copy and paste: supabase/migrations/20251026000003_create_datasets_tables.sql
+   ```
+
+**Verify:** Tables `prompts`, `datasets`, and `dataset_rows` appear in **Table Editor**.
+
+### 3. Configure Environment Variables
+
+**Backend** (`backend/.env`) - Already configured ✅
+```bash
+PORT=3001
+SUPABASE_URL=https://wcmiprucvjrjhfnrtfas.supabase.co
+SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+GROQ_API_KEY=gsk_...
+CEREBRAS_API_KEY=csk-...
+```
+
+**Frontend** (`frontend/.env.local`) - Already configured ✅
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://wcmiprucvjrjhfnrtfas.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+NEXT_PUBLIC_API_URL=http://localhost:3001
+```
+
+### 4. Enable Email Auth in Supabase
+
+1. Go to **Authentication** → **Providers**
 2. Ensure **Email** provider is enabled
-3. For development, you can disable email confirmation:
-   - Go to **Authentication** → **Settings**
+3. For development, disable email confirmation:
+   - **Authentication** → **Settings**
    - Scroll to **Email Auth**
-   - Uncheck "Enable email confirmations" (dev only!)
+   - Uncheck "Enable email confirmations"
 
-### Step 3: Create a Test User
+### 5. Create a Test User
 
-Option A: Via Supabase Dashboard
-1. Go to **Authentication** → **Users**
+**Option A: Via Supabase Dashboard**
+1. **Authentication** → **Users**
 2. Click "Add User" → "Create new user"
 3. Enter:
    - Email: `test@example.com`
-   - Password: `test123` (or your choice)
+   - Password: `test123`
    - Auto-confirm user: ✅ Yes
 
-Option B: Via the App
-1. Run `npm run dev` in the `frontend` directory
-2. Navigate to `/auth`
-3. Click "Sign up"
-4. Enter email and password
-5. (If email confirmation is enabled, check your email)
-
-### Step 4: Seed Initial Prompts (Optional but Recommended)
-
-After signing in, seed some test prompts:
-
-**Option A: Via Browser Console**
-1. Sign in to the app
-2. Open browser console (F12)
-3. Copy and paste the contents of `scripts/seed-prompts-browser.js`
-4. Press Enter
-5. Page will auto-reload with 3 test prompts
-
-**Option B: Create Manually**
-1. Click the menu icon (three dots) next to the prompt name
-2. Click "New Prompt"
-3. Enter a name and select type (Generator or Grader)
-4. Start typing your prompt in the editor
+**Option B: Via the App**
+1. Start the servers: `npm run dev`
+2. Navigate to http://localhost:3000/auth
+3. Click "Sign up" and create an account
 
 ---
 
-## 🔄 Remaining Work (Slice 1.3)
+## Running the Application
 
-The following tasks still need to be completed:
+### Development Mode (Both Servers)
 
-### 1. Update UI Components to Use Async Service Functions
+```bash
+# From project root - runs both servers concurrently
+npm run dev
+```
 
-The UI components currently use synchronous mock functions. They need to be updated to use the new async service layer:
+This starts:
+- **Frontend**: http://localhost:3000 (Next.js)
+- **Backend**: http://localhost:3001 (Express)
 
-**Files to update:**
-- `frontend/components/EditorPanel.tsx`
-  - Replace `getAllPrompts()` → `await getAllPrompts()`
-  - Replace `getPromptById()` → `await getPromptById()`
-  - Replace `createPrompt()` → `await createPrompt()`
-  - Replace `updatePrompt()` → `await updatePrompt()`
-  - Replace `renamePrompt()` → `await renamePrompt()`
+### Run Servers Individually
 
-- `frontend/app/page.tsx`
-  - Replace `getAllPrompts()` → `await getAllPrompts()`
-  - Update imports to use `prompts.client.ts`
+```bash
+# Backend only
+npm run dev:backend
 
-### 2. Delete Mock Prompt Code
+# Frontend only
+npm run dev:frontend
+```
 
-Once the UI is updated and tested:
-- Remove prompt-related functions from `frontend/lib/mockRepo.temp.ts`:
-  - `getAllPrompts()`
-  - `getPromptById()`
-  - `createPrompt()`
-  - `updatePrompt()`
-  - `renamePrompt()`
-  - `deletePrompt()`
+### Production Build
 
-### 3. Add Playwright E2E Test
+```bash
+# Build both
+npm run build
 
-Create an E2E test that verifies:
-1. Create a new prompt
-2. Edit the prompt text
-3. Reload the page
-4. Verify the prompt persists
+# Start production servers
+npm run start
+```
 
-### 4. Testing Checklist
+---
 
-- [x] Migrations applied successfully in Supabase ✅
-- [x] Test user created ✅
-- [x] Build passes ✅
-- [ ] Can sign in at `/auth`
-- [ ] Redirects to `/` after sign in
+## Project Structure
+
+```
+project-root/
+├── backend/                    # Express API server
+│   ├── src/
+│   │   ├── server.ts          # Express app entry point
+│   │   ├── routes/            # API route handlers
+│   │   │   ├── prompts.ts
+│   │   │   └── datasets.ts
+│   │   ├── data/              # Database operations
+│   │   │   ├── prompts.ts
+│   │   │   └── datasets.ts
+│   │   └── lib/               # Utilities
+│   │       ├── supabase.ts    # Supabase client
+│   │       ├── auth.ts        # JWT middleware
+│   │       └── types.ts       # Database types
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── .env                   # Server-side secrets
+│
+├── frontend/                   # Next.js UI
+│   ├── app/
+│   │   ├── page.tsx           # Main app page
+│   │   └── auth/page.tsx      # Sign in/sign up
+│   ├── components/            # React components
+│   ├── lib/
+│   │   ├── services/          # API client layer
+│   │   │   ├── api-client.ts  # Auth helper
+│   │   │   ├── prompts.client.ts
+│   │   │   └── datasets.client.ts
+│   │   └── supabase/
+│   │       ├── client.ts      # Browser Supabase client
+│   │       └── types.ts       # Database types
+│   ├── package.json
+│   └── .env.local             # Browser-safe vars
+│
+├── supabase/                   # Database migrations
+│   └── migrations/
+│       ├── 20251026000001_create_prompts_table.sql
+│       ├── 20251026000002_add_prompt_fields.sql
+│       └── 20251026000003_create_datasets_tables.sql
+│
+└── package.json                # Root workspace config
+```
+
+---
+
+## How Authentication Works
+
+1. **User signs in** via frontend (`/auth` page)
+2. **Supabase returns JWT** access token
+3. **Frontend stores token** in browser session
+4. **All API calls** include `Authorization: Bearer <token>` header
+5. **Backend verifies token** via auth middleware
+6. **Supabase RLS** enforces user data isolation
+
+---
+
+## API Endpoints
+
+### Prompts
+- `GET /api/prompts` - List all prompts
+- `GET /api/prompts?type=generator` - Filter by type
+- `POST /api/prompts` - Create prompt
+- `GET /api/prompts/:id` - Get single prompt
+- `PATCH /api/prompts/:id` - Update prompt
+- `DELETE /api/prompts/:id` - Delete prompt
+
+### Datasets
+- `GET /api/datasets` - List all datasets
+- `POST /api/datasets` - Upload CSV/JSON file
+- `GET /api/datasets/:id?limit=100&offset=0` - Get dataset with rows
+- `DELETE /api/datasets/:id` - Delete dataset
+
+All endpoints require authentication via `Authorization: Bearer <token>` header.
+
+---
+
+## Testing Checklist
+
+After setup, verify:
+
+- [ ] Can access http://localhost:3000
+- [ ] Can access http://localhost:3001/health (should return `{"status":"ok"}`)
+- [ ] Can sign in at http://localhost:3000/auth
 - [ ] Can create a new prompt
 - [ ] Can edit prompt text
-- [ ] Can rename a prompt
-- [ ] Can switch between prompts
-- [ ] Prompts persist after page reload
-- [ ] RLS works (user can only see their own prompts)
+- [ ] Prompt persists after page reload
+- [ ] Can upload a dataset (CSV or JSON)
+- [ ] Can view dataset preview
 
 ---
 
-## 📁 New Files Created
+## Troubleshooting
 
-### Infrastructure
-```
-.env.local                                    # Your API keys (gitignored)
-.env.example                                  # Template for API keys
-supabase/
-  ├── config.toml                             # Supabase config
-  ├── README.md                               # Migration instructions
-  └── migrations/
-      ├── 20251026000001_create_prompts_table.sql
-      ├── 20251026000002_add_prompt_fields.sql
-      └── 20251026000003_create_datasets_tables.sql
-```
+### "Module not found" errors
 
-### Backend
-```
-frontend/
-  ├── middleware.ts                           # Auth middleware
-  ├── app/
-  │   ├── auth/page.tsx                       # Sign in/sign up page
-  │   └── api/
-  │       └── prompts/
-  │           ├── route.ts                    # GET, POST /api/prompts
-  │           └── [id]/route.ts               # GET, PATCH, DELETE /api/prompts/[id]
-  ├── lib/
-  │   ├── auth/
-  │   │   └── auth.ts                         # Auth helpers
-  │   ├── data/
-  │   │   └── prompts.ts                      # Server-side data layer
-  │   ├── services/
-  │   │   └── prompts.client.ts               # Client-side service layer
-  │   └── supabase/
-  │       ├── client.ts                       # Browser Supabase client
-  │       ├── server.ts                       # Server Supabase client
-  │       └── types.ts                        # Database types
-  └── jest.integration.config.js              # Integration test config
-```
+- Make sure you've run `npm run install-all`
+- Try deleting `node_modules` and reinstalling
+
+### Backend won't start
+
+- Check `backend/.env` exists with correct values
+- Verify port 3001 is not in use: `lsof -i :3001`
+- Check backend logs for errors
+
+### Frontend can't connect to backend
+
+- Verify backend is running on port 3001
+- Check `frontend/.env.local` has `NEXT_PUBLIC_API_URL=http://localhost:3001`
+- Check browser console for CORS errors
+
+### Authentication errors
+
+- Verify you've created a test user in Supabase
+- Check that JWT token is being sent (see Network tab, Authorization header)
+- Verify Supabase anon key is correct in both `backend/.env` and `frontend/.env.local`
+
+### Database errors
+
+- Verify all migrations were applied in Supabase Dashboard
+- Check RLS policies are in place (SQL Editor → each table should have policies)
+- Verify user's `id` exists in `auth.users` table
 
 ---
 
-## 🐛 Troubleshooting
+## What Changed from Previous Setup
 
-### "User not authenticated" errors
-- Make sure you're signed in (`/auth`)
-- Check that auth middleware is working
-- Verify cookies are being set
+### Before (Monolithic Next.js)
+- API routes in `frontend/app/api/`
+- Middleware for authentication
+- Server-side data layer in `frontend/lib/data/`
+- Single port (3000)
 
-### "Failed to fetch prompts"
-- Check that migrations were applied
-- Verify RLS policies are in place
-- Check browser console for errors
+### After (Separated Backend)
+- API routes in `backend/src/routes/`
+- JWT middleware in Express
+- Data layer in `backend/src/data/`
+- Two ports: 3000 (UI) + 3001 (API)
+- Frontend calls backend via HTTP with Authorization header
 
-### "relation 'prompts' does not exist"
-- Migrations were not applied
-- Follow Step 1 in Manual Steps above
-
-### TypeScript errors in IDE
-- Run `npm install` in the frontend directory
-- Restart TypeScript server in VS Code
-
----
-
-## 📚 Documentation References
-
-- Supabase Setup: `supabase/README.md`
-- Project Architecture: `.agent/system/project_architecture.md`
-- Implementation Plan: `prompt_plan.md`
-- Todo List: `todo.md`
+### Benefits
+- ✅ True separation of concerns
+- ✅ API keys never exposed to browser
+- ✅ Can scale frontend and backend independently
+- ✅ Clearer project structure
+- ✅ Backend can be reused by other clients (mobile app, CLI, etc.)
 
 ---
 
-**Last Updated**: 2025-10-26
-**Status**: Infrastructure complete, UI integration in progress
-**Next Action**: Apply manual steps, then update UI components
+## Next Steps
+
+With Slice 1 (Prompts) and Slice 2 (Datasets) complete, you can:
+
+1. **Test the UI** - Create prompts, upload datasets
+2. **Continue with Slice 3** - Runs and execution
+3. **Add more features** - Follow `prompt_plan.md`
+
+---
+
+**Last Updated:** 2025-10-27
+**Status:** Backend separation complete, all builds passing ✅
