@@ -11,8 +11,10 @@
 2. **Database Schema**
    - Created `prompts` table migration with RLS policies
    - Added `expected_output` and `version_counter` fields to match UI expectations
+   - Created `datasets` and `dataset_rows` tables with RLS policies
    - Files: `supabase/migrations/20251026000001_create_prompts_table.sql`
    - Files: `supabase/migrations/20251026000002_add_prompt_fields.sql`
+   - Files: `supabase/migrations/20251026000003_create_datasets_tables.sql`
 
 3. **Supabase Client Setup**
    - Created browser client (`frontend/lib/supabase/client.ts`)
@@ -50,14 +52,17 @@ Before the app will work, you must complete these manual steps:
 
 1. Go to your Supabase Dashboard: https://supabase.com/dashboard/project/wcmiprucvjrjhfnrtfas
 2. Navigate to **SQL Editor** → **New Query**
-3. Apply migration #1:
+3. Apply migration #1 (Prompts table):
    - Copy contents of `supabase/migrations/20251026000001_create_prompts_table.sql`
    - Paste and run
-4. Apply migration #2:
+4. Apply migration #2 (Prompts fields):
    - Copy contents of `supabase/migrations/20251026000002_add_prompt_fields.sql`
    - Paste and run
+5. Apply migration #3 (Datasets tables):
+   - Copy contents of `supabase/migrations/20251026000003_create_datasets_tables.sql`
+   - Paste and run
 
-Expected result: `prompts` table should appear in **Table Editor** with all fields.
+Expected result: `prompts`, `datasets`, and `dataset_rows` tables should appear in **Table Editor** with all fields.
 
 ### Step 2: Enable Email Auth (if not already enabled)
 
@@ -170,7 +175,8 @@ supabase/
   ├── README.md                               # Migration instructions
   └── migrations/
       ├── 20251026000001_create_prompts_table.sql
-      └── 20251026000002_add_prompt_fields.sql
+      ├── 20251026000002_add_prompt_fields.sql
+      └── 20251026000003_create_datasets_tables.sql
 ```
 
 ### Backend

@@ -17,10 +17,8 @@ import {
   updatePrompt,
   renamePrompt,
 } from '@/lib/services/prompts.client';
-import {
-  getDatasetById,
-  createRun,
-} from '@/lib/mockRepo.temp';
+import { getDatasetById } from '@/lib/services/datasets.client';
+import { createRun } from '@/lib/mockRepo.temp';
 import { validateRun } from '@/lib/utils';
 import { executeRun } from '@/lib/mockRunExecutor.temp';
 import { DatasetSelector } from './DatasetSelector';
@@ -209,7 +207,7 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
     await saveIfChanged();
 
     // Validate
-    const dataset = selectedDatasetId ? getDatasetById(selectedDatasetId) : null;
+    const dataset = selectedDatasetId ? await getDatasetById(selectedDatasetId) : null;
     const grader = selectedGraderId ? await getPromptById(selectedGraderId) : null;
     const errors = validateRun(currentPrompt, dataset, grader);
 

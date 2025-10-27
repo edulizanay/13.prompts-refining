@@ -6,9 +6,9 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { FileUpIcon, FlaskConicalIcon } from 'lucide-react';
 import type { Prompt, Run, Dataset } from '@/lib/types';
-import { initializeSeedData, getUIState, setActiveRunId, getRunById, getDatasetById, deduplicateModels, createDataset, getAllModels } from '@/lib/mockRepo.temp';
+import { initializeSeedData, getUIState, setActiveRunId, getRunById, deduplicateModels, getAllModels } from '@/lib/mockRepo.temp';
 import { getAllPrompts } from '@/lib/services/prompts.client';
-import { parseDatasetFile } from '@/lib/utils';
+import { getDatasetById, createDataset as createDatasetAPI } from '@/lib/services/datasets.client';
 import { EditorPanel } from '@/components/EditorPanel';
 import { ResultsGrid } from '@/components/ResultsGrid';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -133,19 +133,28 @@ export default function Home() {
 
   // Update current run and dataset based on displayRunId (keeps showing results even after execution ends)
   useEffect(() => {
-    if (displayRunId) {
-      const run = getRunById(displayRunId);
-      setCurrentRun(run || null);
-      if (run?.dataset_id) {
-        const dataset = getDatasetById(run.dataset_id);
-        setCurrentDataset(dataset || null);
+    async function loadRunAndDataset() {
+      if (displayRunId) {
+        const run = getRunById(displayRunId);
+        setCurrentRun(run || null);
+        if (run?.dataset_id) {
+          try {
+            const dataset = await getDatasetById(run.dataset_id);
+            setCurrentDataset(dataset || null);
+          } catch (error) {
+            console.error('[Page] Failed to load dataset:', error);
+            setCurrentDataset(null);
+          }
+        } else {
+          setCurrentDataset(null);
+        }
       } else {
+        setCurrentRun(null);
         setCurrentDataset(null);
       }
-    } else {
-      setCurrentRun(null);
-      setCurrentDataset(null);
     }
+
+    loadRunAndDataset();
   }, [displayRunId]);
 
   // Keyboard shortcut: Cmd+Enter (Mac) or Ctrl+Enter (Windows/Linux) to run
@@ -170,9 +179,8 @@ export default function Home() {
 
     setUploadLoading(true);
     try {
-      const text = await file.text();
-      const result = parseDatasetFile(text, file.name);
-      const dataset = createDataset(file.name.replace(/\.[^.]+$/, ''), result.headers, result.rows);
+      // Use API to create dataset
+      const dataset = await createDatasetAPI(file);
       setSelectedDatasetId(dataset.id);
       setUploadToast({ type: 'success', message: `Dataset "${dataset.name}" uploaded successfully` });
       setTimeout(() => setUploadToast(null), 3000);

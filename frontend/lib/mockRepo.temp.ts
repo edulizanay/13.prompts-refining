@@ -1,11 +1,11 @@
-// ABOUTME: TEMP localStorage CRUD for Datasets, Runs, Cells
+// ABOUTME: TEMP localStorage CRUD for Runs, Cells
 // ABOUTME: Will be replaced with Supabase repos in Phase 2; DO NOT add business logic here
 // NOTE: Prompt-related functions have been moved to lib/services/prompts.client.ts (uses Supabase)
+// NOTE: Dataset-related functions have been moved to lib/services/datasets.client.ts (uses Supabase)
 
-import { Dataset, Run, Cell, UIState, MetricView, Model } from './types';
+import { Run, Cell, UIState, MetricView, Model } from './types';
 
 const STORAGE_KEYS = {
-  DATASETS: 'datasets',
   RUNS: 'runs',
   CELLS: 'cells',
   MODELS: 'models',
@@ -15,57 +15,6 @@ const STORAGE_KEYS = {
 
 export function generateId(prefix: string): string {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-}
-
-// DATASETS
-
-export function getAllDatasets(): Dataset[] {
-  const data = localStorage.getItem(STORAGE_KEYS.DATASETS);
-  return data ? JSON.parse(data) : [];
-}
-
-export function getDatasetById(id: string): Dataset | null {
-  const datasets = getAllDatasets();
-  return datasets.find((d) => d.id === id) || null;
-}
-
-export function createDataset(
-  name: string,
-  headers: string[],
-  rows: Record<string, string>[],
-  source: 'upload' | 'manual' = 'upload'
-): Dataset {
-  const dataset: Dataset = {
-    id: generateId('dataset'),
-    name,
-    source,
-    headers,
-    row_count: rows.length,
-    rows: rows.slice(0, 50), // cap at 50 for preview
-  };
-  const datasets = getAllDatasets();
-  datasets.push(dataset);
-  localStorage.setItem(STORAGE_KEYS.DATASETS, JSON.stringify(datasets));
-  return dataset;
-}
-
-export function updateDataset(id: string, updates: Partial<Dataset>): Dataset | null {
-  const datasets = getAllDatasets();
-  const index = datasets.findIndex((d) => d.id === id);
-  if (index === -1) return null;
-
-  const dataset = { ...datasets[index], ...updates };
-  datasets[index] = dataset;
-  localStorage.setItem(STORAGE_KEYS.DATASETS, JSON.stringify(datasets));
-  return dataset;
-}
-
-export function deleteDataset(id: string): boolean {
-  const datasets = getAllDatasets();
-  const filtered = datasets.filter((d) => d.id !== id);
-  if (filtered.length === datasets.length) return false;
-  localStorage.setItem(STORAGE_KEYS.DATASETS, JSON.stringify(filtered));
-  return true;
 }
 
 // RUNS
@@ -296,21 +245,8 @@ export function initializeSeedData(): void {
   // NOTE: Prompts are now managed via Supabase API
   // Seed prompts should be created via the UI or API routes after authentication
 
-  // 1 dataset: 10 rows
-  const rows = [
-    { user_message: 'What is 2+2?', expected_tone: 'professional' },
-    { user_message: 'Tell me a joke', expected_tone: 'humorous' },
-    { user_message: 'Explain AI', expected_tone: 'technical' },
-    { user_message: 'How to cook pasta?', expected_tone: 'friendly' },
-    { user_message: 'What is Python?', expected_tone: 'educational' },
-    { user_message: 'Summarize WWII', expected_tone: 'informative' },
-    { user_message: 'Write a poem', expected_tone: 'creative' },
-    { user_message: 'Best practices?', expected_tone: 'technical' },
-    { user_message: 'Hello there', expected_tone: 'casual' },
-    { user_message: 'What is quantum computing?', expected_tone: 'technical' },
-  ];
-
-  createDataset('Sample Questions', ['user_message', 'expected_tone'], rows);
+  // NOTE: Datasets are now managed via Supabase API
+  // Seed datasets should be uploaded via the UI file upload after authentication
 
   // Initialize with latest models
   // Cerebras Systems (Cerebras API)

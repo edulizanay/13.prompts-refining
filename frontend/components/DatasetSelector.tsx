@@ -4,8 +4,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getDatasetById } from '@/lib/mockRepo.temp';
+import { getDatasetById } from '@/lib/services/datasets.client';
 import { Modal } from '@/components/ui/modal';
+import type { Dataset } from '@/lib/types';
 
 interface DatasetSelectorProps {
   selectedDatasetId: string | null;
@@ -15,14 +16,53 @@ interface DatasetSelectorProps {
 export function DatasetSelector({ selectedDatasetId }: DatasetSelectorProps) {
   const [mounted, setMounted] = useState(false);
   const [previewDatasetId, setPreviewDatasetId] = useState<string | null>(null);
+  const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null);
+  const [previewDataset, setPreviewDataset] = useState<Dataset | null>(null);
 
-  // Load on mount
+  // Load selected dataset
+  useEffect(() => {
+    async function loadSelectedDataset() {
+      if (!selectedDatasetId) {
+        setSelectedDataset(null);
+        return;
+      }
+
+      try {
+        const dataset = await getDatasetById(selectedDatasetId);
+        setSelectedDataset(dataset);
+      } catch (error) {
+        console.error('[DatasetSelector] Failed to load selected dataset:', error);
+        setSelectedDataset(null);
+      }
+    }
+
+    loadSelectedDataset();
+  }, [selectedDatasetId]);
+
+  // Load preview dataset
+  useEffect(() => {
+    async function loadPreviewDataset() {
+      if (!previewDatasetId) {
+        setPreviewDataset(null);
+        return;
+      }
+
+      try {
+        const dataset = await getDatasetById(previewDatasetId);
+        setPreviewDataset(dataset);
+      } catch (error) {
+        console.error('[DatasetSelector] Failed to load preview dataset:', error);
+        setPreviewDataset(null);
+      }
+    }
+
+    loadPreviewDataset();
+  }, [previewDatasetId]);
+
+  // Set mounted on mount
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  const selectedDataset = selectedDatasetId ? getDatasetById(selectedDatasetId) : null;
-  const previewDataset = previewDatasetId ? getDatasetById(previewDatasetId) : null;
 
   if (!mounted) return null;
 
