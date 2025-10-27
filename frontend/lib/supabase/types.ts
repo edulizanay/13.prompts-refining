@@ -24,7 +24,9 @@ export interface Database {
           id: string
           name: string
           type: 'generator' | 'grader'
-          body: string
+          text: string
+          expected_output: 'none' | 'response' | 'json'
+          version_counter: number
           created_at: string
           updated_at: string
           owner_id: string
@@ -33,7 +35,9 @@ export interface Database {
           id?: string
           name: string
           type: 'generator' | 'grader'
-          body?: string
+          text?: string
+          expected_output?: 'none' | 'response' | 'json'
+          version_counter?: number
           created_at?: string
           updated_at?: string
           owner_id: string
@@ -42,7 +46,9 @@ export interface Database {
           id?: string
           name?: string
           type?: 'generator' | 'grader'
-          body?: string
+          text?: string
+          expected_output?: 'none' | 'response' | 'json'
+          version_counter?: number
           created_at?: string
           updated_at?: string
           owner_id?: string

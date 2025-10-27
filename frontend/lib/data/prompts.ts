@@ -68,7 +68,7 @@ export async function getPrompt(id: string): Promise<Prompt> {
  * @throws Error if creation fails or user is not authenticated
  */
 export async function createPrompt(
-  prompt: Omit<PromptInsert, 'owner_id'>
+  prompt: Omit<PromptInsert, 'owner_id' | 'id' | 'created_at' | 'updated_at'>
 ): Promise<Prompt> {
   const supabase = await getSupabaseServerClient()
 
@@ -108,7 +108,7 @@ export async function createPrompt(
  */
 export async function updatePrompt(
   id: string,
-  updates: Omit<PromptUpdate, 'id' | 'owner_id' | 'created_at' | 'updated_at'>
+  updates: Partial<Omit<PromptUpdate, 'id' | 'owner_id' | 'created_at' | 'updated_at'>>
 ): Promise<Prompt> {
   const supabase = await getSupabaseServerClient()
 
