@@ -6,7 +6,8 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { FileUpIcon, FlaskConicalIcon } from 'lucide-react';
 import type { Prompt, Run, Dataset } from '@/lib/types';
-import { initializeSeedData, getUIState, setActiveRunId, getRunById, getDatasetById, deduplicateModels, createDataset, getAllPrompts, getAllModels } from '@/lib/mockRepo.temp';
+import { initializeSeedData, getUIState, setActiveRunId, getRunById, getDatasetById, deduplicateModels, createDataset, getAllModels } from '@/lib/mockRepo.temp';
+import { getAllPrompts } from '@/lib/services/prompts.client';
 import { parseDatasetFile } from '@/lib/utils';
 import { EditorPanel } from '@/components/EditorPanel';
 import { ResultsGrid } from '@/components/ResultsGrid';
@@ -33,33 +34,42 @@ export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Initialize seed data on first load
-    initializeSeedData();
+    async function initialize() {
+      // Initialize seed data on first load
+      initializeSeedData();
 
-    // Clean up any duplicate models
-    deduplicateModels();
+      // Clean up any duplicate models
+      deduplicateModels();
 
-    // Load UI state
-    const uiState = getUIState();
-    setActiveRunIdState(uiState.activeRunId);
-    setDisplayRunId(uiState.activeRunId);
+      // Load UI state
+      const uiState = getUIState();
+      setActiveRunIdState(uiState.activeRunId);
+      setDisplayRunId(uiState.activeRunId);
 
-    // Load view mode preference from localStorage
-    const savedViewMode = localStorage.getItem('viewMode');
-    if (savedViewMode === 'focus' || savedViewMode === 'balanced') {
-      setViewMode(savedViewMode);
+      // Load view mode preference from localStorage
+      const savedViewMode = localStorage.getItem('viewMode');
+      if (savedViewMode === 'focus' || savedViewMode === 'balanced') {
+        setViewMode(savedViewMode);
+      }
+
+      // Load prompts
+      try {
+        const allPrompts = await getAllPrompts();
+        setPrompts(allPrompts);
+      } catch (error) {
+        console.error('[Page] Failed to load prompts:', error);
+      }
+
+      // Initialize with first model if none selected
+      const allModels = getAllModels();
+      if (allModels.length > 0 && selectedModelIds.length === 0) {
+        setSelectedModelIds([allModels[0].id]);
+      }
+
+      setMounted(true);
     }
 
-    // Load prompts
-    setPrompts(getAllPrompts());
-
-    // Initialize with first model if none selected
-    const allModels = getAllModels();
-    if (allModels.length > 0 && selectedModelIds.length === 0) {
-      setSelectedModelIds([allModels[0].id]);
-    }
-
-    setMounted(true);
+    initialize();
   }, []);
 
   // Change view mode with transition lock

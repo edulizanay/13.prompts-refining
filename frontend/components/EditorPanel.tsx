@@ -16,6 +16,8 @@ import {
   createPrompt,
   updatePrompt,
   renamePrompt,
+} from '@/lib/services/prompts.client';
+import {
   getDatasetById,
   createRun,
 } from '@/lib/mockRepo.temp';
@@ -86,18 +88,26 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
 
   // Load prompts on mount
   useEffect(() => {
-    const all = getAllPrompts();
-    setPrompts(all);
-    if (all.length > 0) {
-      const toSelect = all[0].id;
-      setSelectedId(toSelect);
-      const prompt = getPromptById(toSelect);
-      if (prompt) {
-        setCurrentPrompt(prompt);
-        setRenameInput(prompt.name);
+    async function loadPrompts() {
+      try {
+        const all = await getAllPrompts();
+        setPrompts(all);
+        if (all.length > 0) {
+          const toSelect = all[0].id;
+          setSelectedId(toSelect);
+          const prompt = await getPromptById(toSelect);
+          if (prompt) {
+            setCurrentPrompt(prompt);
+            setRenameInput(prompt.name);
+          }
+        }
+      } catch (error) {
+        console.error('[EditorPanel] Failed to load prompts:', error);
+      } finally {
+        setMounted(true);
       }
     }
-    setMounted(true);
+    loadPrompts();
   }, []);
 
   const handleUpdateText = (text: string) => {
@@ -106,40 +116,55 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
     textIsChangedRef.current = true;
   };
 
-  const saveIfChanged = useCallback(() => {
+  const saveIfChanged = useCallback(async () => {
     if (!currentPrompt || !textIsChangedRef.current) return;
     console.log('[EditorPanel] Saving prompt changes:', currentPrompt.id);
-    const updated = updatePrompt(currentPrompt.id, { text: currentPrompt.text });
-    if (updated) {
+    try {
+      const updated = await updatePrompt(currentPrompt.id, { text: currentPrompt.text });
       setCurrentPrompt(updated);
-      setPrompts(getAllPrompts());
+      const all = await getAllPrompts();
+      setPrompts(all);
       console.log('[EditorPanel] Save successful');
+      textIsChangedRef.current = false;
+    } catch (error) {
+      console.error('[EditorPanel] Save failed:', error);
     }
   }, [currentPrompt]);
 
   // Sync currentPrompt when selectedId changes
   useEffect(() => {
-    if (selectedId && selectedId !== previousSelectedIdRef.current) {
-      // Save current prompt before switching (only if we had a previous prompt)
-      if (previousSelectedIdRef.current && textIsChangedRef.current && currentPrompt) {
-        console.log('[EditorPanel] Saving prompt changes before switching:', currentPrompt.id);
-        const updated = updatePrompt(currentPrompt.id, { text: currentPrompt.text });
-        if (updated) {
-          setPrompts(getAllPrompts());
-          console.log('[EditorPanel] Save successful');
+    async function handlePromptChange() {
+      if (selectedId && selectedId !== previousSelectedIdRef.current) {
+        // Save current prompt before switching (only if we had a previous prompt)
+        if (previousSelectedIdRef.current && textIsChangedRef.current && currentPrompt) {
+          console.log('[EditorPanel] Saving prompt changes before switching:', currentPrompt.id);
+          try {
+            await updatePrompt(currentPrompt.id, { text: currentPrompt.text });
+            const all = await getAllPrompts();
+            setPrompts(all);
+            console.log('[EditorPanel] Save successful');
+            textIsChangedRef.current = false;
+          } catch (error) {
+            console.error('[EditorPanel] Save failed:', error);
+          }
         }
-      }
 
-      // Load new prompt
-      const prompt = getPromptById(selectedId);
-      if (prompt) {
-        setCurrentPrompt(prompt);
-        setRenameInput(prompt.name);
-        onPromptSelected?.(prompt);
-      }
+        // Load new prompt
+        try {
+          const prompt = await getPromptById(selectedId);
+          if (prompt) {
+            setCurrentPrompt(prompt);
+            setRenameInput(prompt.name);
+            onPromptSelected?.(prompt);
+          }
+        } catch (error) {
+          console.error('[EditorPanel] Failed to load prompt:', error);
+        }
 
-      previousSelectedIdRef.current = selectedId;
+        previousSelectedIdRef.current = selectedId;
+      }
     }
+    handlePromptChange();
   }, [selectedId, onPromptSelected, currentPrompt]);
 
   const handleEditorBlur = () => {
@@ -147,35 +172,45 @@ export const EditorPanel = forwardRef<{ triggerRun: () => Promise<void> }, Edito
     onEditorBlur?.();
   };
 
-  const handleRenamePrompt = () => {
+  const handleRenamePrompt = async () => {
     if (!currentPrompt || !renameInput.trim()) return;
-    const updated = renamePrompt(currentPrompt.id, renameInput.trim());
-    if (updated) {
+    try {
+      const updated = await renamePrompt(currentPrompt.id, renameInput.trim());
       setCurrentPrompt(updated);
-      setPrompts(getAllPrompts());
+      const all = await getAllPrompts();
+      setPrompts(all);
+    } catch (error) {
+      console.error('[EditorPanel] Rename failed:', error);
+    } finally {
+      setIsRenamingPrompt(false);
     }
-    setIsRenamingPrompt(false);
   };
 
-  const handleCreatePrompt = () => {
+  const handleCreatePrompt = async () => {
     if (!newPromptName.trim()) return;
-    const newPrompt = createPrompt(newPromptName.trim(), newPromptType);
-    setPrompts([...getAllPrompts()]);
-    setSelectedId(newPrompt.id);
-    setNewPromptName('');
-    setNewPromptType('generator');
-    setNewPromptDialog(false);
+    try {
+      const newPrompt = await createPrompt(newPromptName.trim(), newPromptType);
+      const all = await getAllPrompts();
+      setPrompts(all);
+      setSelectedId(newPrompt.id);
+      setNewPromptName('');
+      setNewPromptType('generator');
+      setNewPromptDialog(false);
+    } catch (error) {
+      console.error('[EditorPanel] Create failed:', error);
+      setErrorDialog('Failed to create prompt');
+    }
   };
 
   const handleRun = useCallback(async () => {
     if (!currentPrompt || activeRunId) return;
 
     // Save any unsaved changes before running
-    saveIfChanged();
+    await saveIfChanged();
 
     // Validate
     const dataset = selectedDatasetId ? getDatasetById(selectedDatasetId) : null;
-    const grader = selectedGraderId ? getPromptById(selectedGraderId) : null;
+    const grader = selectedGraderId ? await getPromptById(selectedGraderId) : null;
     const errors = validateRun(currentPrompt, dataset, grader);
 
     if (errors.length > 0) {

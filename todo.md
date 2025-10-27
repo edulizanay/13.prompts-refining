@@ -17,10 +17,17 @@
   - [x] Create Supabase client modules (browser + server)
   - [x] Create `frontend/lib/data/prompts.ts` with CRUD functions
   - [x] Write integration tests for CRUD + RLS (test infrastructure in place)
-- [ ] 1.3 Replace prompt mocks
-  - [ ] Update UI to use new data layer
-  - [ ] Delete `frontend/lib/mockRepo.temp.ts` prompt code
-  - [ ] Add Playwright E2E test
+- [x] 1.3 Replace prompt mocks
+  - [x] Create API route handlers (GET, POST, PATCH, DELETE /api/prompts)
+  - [x] Create client service layer (`lib/services/prompts.client.ts`)
+  - [x] Add Supabase Auth (sign in/sign up pages, middleware)
+  - [x] Update EditorPanel and page.tsx to use async service layer
+  - [x] Delete prompt-related functions from `frontend/lib/mockRepo.temp.ts`
+  - [x] Add Playwright E2E test structure
+  - [x] Build passes successfully
+  - [ ] **MANUAL STEP REQUIRED**: Apply migrations in Supabase Dashboard
+  - [ ] **MANUAL STEP REQUIRED**: Create test user in Supabase Auth
+  - [ ] Test end-to-end functionality after manual steps
 
 ## Slice 2 — Datasets (Upload & Preview)
 - [ ] 2.1 Dataset schema

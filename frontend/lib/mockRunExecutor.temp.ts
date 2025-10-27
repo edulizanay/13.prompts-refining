@@ -2,7 +2,8 @@
 // ABOUTME: Will be replaced with real API calls in Phase 2; enforces single active run
 
 import { Run, Cell, Dataset } from './types';
-import { upsertCell, getPromptById } from './mockRepo.temp';
+import { upsertCell } from './mockRepo.temp';
+import { getPromptById } from './services/prompts.client';
 import { normalizeGrade } from './utils';
 
 export type ExecutionUpdate = (cell: Cell) => void;

@@ -1,10 +1,10 @@
-// ABOUTME: TEMP localStorage CRUD for Prompts, Datasets, Runs, Cells
+// ABOUTME: TEMP localStorage CRUD for Datasets, Runs, Cells
 // ABOUTME: Will be replaced with Supabase repos in Phase 2; DO NOT add business logic here
+// NOTE: Prompt-related functions have been moved to lib/services/prompts.client.ts (uses Supabase)
 
-import { Prompt, Dataset, Run, Cell, UIState, MetricView, Model } from './types';
+import { Dataset, Run, Cell, UIState, MetricView, Model } from './types';
 
 const STORAGE_KEYS = {
-  PROMPTS: 'prompts',
   DATASETS: 'datasets',
   RUNS: 'runs',
   CELLS: 'cells',
@@ -15,63 +15,6 @@ const STORAGE_KEYS = {
 
 export function generateId(prefix: string): string {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-}
-
-// PROMPTS
-
-export function getAllPrompts(): Prompt[] {
-  const data = localStorage.getItem(STORAGE_KEYS.PROMPTS);
-  return data ? JSON.parse(data) : [];
-}
-
-export function getPromptById(id: string): Prompt | null {
-  const prompts = getAllPrompts();
-  return prompts.find((p) => p.id === id) || null;
-}
-
-export function createPrompt(
-  name: string,
-  type: 'generator' | 'grader',
-  text: string = ''
-): Prompt {
-  const prompt: Prompt = {
-    id: generateId('prompt'),
-    name,
-    type,
-    text,
-    expected_output: 'none',
-    version_counter: 1,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  };
-  const prompts = getAllPrompts();
-  prompts.push(prompt);
-  localStorage.setItem(STORAGE_KEYS.PROMPTS, JSON.stringify(prompts));
-  return prompt;
-}
-
-export function updatePrompt(id: string, updates: Partial<Prompt>): Prompt | null {
-  const prompts = getAllPrompts();
-  const index = prompts.findIndex((p) => p.id === id);
-  if (index === -1) return null;
-
-  const prompt = { ...prompts[index], ...updates, updated_at: new Date().toISOString() };
-  prompts[index] = prompt;
-  localStorage.setItem(STORAGE_KEYS.PROMPTS, JSON.stringify(prompts));
-  return prompt;
-}
-
-export function renamePrompt(id: string, newName: string): Prompt | null {
-  // Rename resets version counter to 1
-  return updatePrompt(id, { name: newName, version_counter: 1 });
-}
-
-export function deletePrompt(id: string): boolean {
-  const prompts = getAllPrompts();
-  const filtered = prompts.filter((p) => p.id !== id);
-  if (filtered.length === prompts.length) return false;
-  localStorage.setItem(STORAGE_KEYS.PROMPTS, JSON.stringify(filtered));
-  return true;
 }
 
 // DATASETS
@@ -350,19 +293,8 @@ export function initializeSeedData(): void {
   const alreadyInit = localStorage.getItem(STORAGE_KEYS.INITIALIZED);
   if (alreadyInit) return;
 
-  // 2 prompts: 1 generator, 1 grader
-  const generator = createPrompt(
-    'Helpful Assistant',
-    'generator',
-    'You are a helpful assistant. The user asks: {{user_message}}\n\nRespond professionally and concisely.'
-  );
-  updatePrompt(generator.id, { expected_output: 'response' });
-
-  createPrompt(
-    'Quality Grader',
-    'grader',
-    'Rate the quality of this response: {{output}}\n\nRespond with either "Yes" or "No".'
-  );
+  // NOTE: Prompts are now managed via Supabase API
+  // Seed prompts should be created via the UI or API routes after authentication
 
   // 1 dataset: 10 rows
   const rows = [
