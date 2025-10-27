@@ -5,7 +5,7 @@
  * Run this after signing in for the first time.
  */
 
-import { createPrompt } from '../lib/services/prompts.client'
+import { createPrompt } from '../services/prompts.client'
 
 const seedPrompts = [
   {
