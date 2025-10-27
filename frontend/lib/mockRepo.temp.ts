@@ -306,16 +306,29 @@ export function getModelById(id: string): Model | null {
   return models.find((m) => m.id === id) || null;
 }
 
-export function createModel(provider: string, model: string): Model {
+export function createModel(provider: string, model: string, priceInput: number = 0, priceOutput: number = 0): Model {
   const newModel: Model = {
     id: generateId('model'),
     provider,
     model,
+    price_input: priceInput,
+    price_output: priceOutput,
   };
   const models = getAllModels();
   models.push(newModel);
   localStorage.setItem(STORAGE_KEYS.MODELS, JSON.stringify(models));
   return newModel;
+}
+
+export function updateModel(id: string, updates: Partial<Model>): Model | null {
+  const models = getAllModels();
+  const index = models.findIndex((m) => m.id === id);
+  if (index === -1) return null;
+
+  const model = { ...models[index], ...updates };
+  models[index] = model;
+  localStorage.setItem(STORAGE_KEYS.MODELS, JSON.stringify(models));
+  return model;
 }
 
 export function deleteModel(id: string): void {
@@ -380,16 +393,16 @@ export function initializeSeedData(): void {
 
   createDataset('Sample Questions', ['user_message', 'expected_tone'], rows);
 
-  // Initialize with latest models
+  // Initialize with latest models (pricing per 1M tokens)
   // Cerebras Systems (Cerebras API)
-  createModel('Cerebras Systems', 'gpt-oss-120b');
-  createModel('Cerebras Systems', 'llama3.1-8b');
-  createModel('Cerebras Systems', 'llama-3.3-70b');
+  createModel('Cerebras Systems', 'gpt-oss-120b', 1.00, 1.50);
+  createModel('Cerebras Systems', 'llama3.1-8b', 0.05, 0.08);
+  createModel('Cerebras Systems', 'llama-3.3-70b', 0.59, 0.79);
 
   // Groq Inc. (Groq OpenAI-compatible API)
-  createModel('Groq Inc.', 'openai/gpt-oss-20b');
-  createModel('Groq Inc.', 'openai/gpt-oss-120b');
-  createModel('Groq Inc.', 'llama-3.3-70b-versatile');
+  createModel('Groq Inc.', 'openai/gpt-oss-20b', 0.075, 0.30);
+  createModel('Groq Inc.', 'openai/gpt-oss-120b', 1.00, 1.50);
+  createModel('Groq Inc.', 'llama-3.3-70b-versatile', 0.59, 0.79);
 
   localStorage.setItem(STORAGE_KEYS.INITIALIZED, 'true');
 }
