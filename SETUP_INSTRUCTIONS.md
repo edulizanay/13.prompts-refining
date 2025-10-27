@@ -85,6 +85,23 @@ Option B: Via the App
 4. Enter email and password
 5. (If email confirmation is enabled, check your email)
 
+### Step 4: Seed Initial Prompts (Optional but Recommended)
+
+After signing in, seed some test prompts:
+
+**Option A: Via Browser Console**
+1. Sign in to the app
+2. Open browser console (F12)
+3. Copy and paste the contents of `scripts/seed-prompts-browser.js`
+4. Press Enter
+5. Page will auto-reload with 3 test prompts
+
+**Option B: Create Manually**
+1. Click the menu icon (three dots) next to the prompt name
+2. Click "New Prompt"
+3. Enter a name and select type (Generator or Grader)
+4. Start typing your prompt in the editor
+
 ---
 
 ## 🔄 Remaining Work (Slice 1.3)
@@ -128,8 +145,9 @@ Create an E2E test that verifies:
 
 ### 4. Testing Checklist
 
-- [ ] Migrations applied successfully in Supabase
-- [ ] Test user created
+- [x] Migrations applied successfully in Supabase ✅
+- [x] Test user created ✅
+- [x] Build passes ✅
 - [ ] Can sign in at `/auth`
 - [ ] Redirects to `/` after sign in
 - [ ] Can create a new prompt
